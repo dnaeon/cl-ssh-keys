@@ -41,6 +41,7 @@
 
    ;; generics
    :decode-key
+   :encode-key
 
    ;; key-types
    :*key-types*

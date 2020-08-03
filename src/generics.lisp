@@ -27,3 +27,7 @@
 
 (defgeneric decode-key (kind stream &key)
   (:documentation "Decodes a key with the given kind from the binary stream"))
+
+(defgeneric encode-key (key stream &key)
+  (:documentation "Encodes the key to the given binary stream. Returns the number of
+bytes written to the stream."))
