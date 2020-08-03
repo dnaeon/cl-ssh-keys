@@ -83,6 +83,25 @@
      :is-cert t))
   "OpenSSH key types")
 
+(define-condition base-error (simple-error)
+  ((description
+    :initarg :description
+    :reader error-description))
+  (:documentation "Base error condition"))
+
+(define-condition invalid-public-key-error (base-error)
+  ()
+  (:documentation "Signaled when a public key file is detected as invalid"))
+
+(define-condition key-type-mismatch-error (base-error)
+  ((expected
+    :initarg :expected
+    :reader error-expected-key-type)
+   (found
+    :initarg :found
+    :reader error-found-key-type))
+  (:documentation "Signaled when there is a mismatch between the public key type and the encoded key type"))
+
 (defun get-key-type (name)
   "Get the key type identified by the given name"
   (find name *key-types*
