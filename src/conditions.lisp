@@ -25,25 +25,21 @@
 
 (in-package :cl-ssh-keys)
 
-(defclass rsa-public-key (ironclad:rsa-public-key)
-  ((type
-    :initarg :type
-    :initform (error "Must specify key type")
-    :reader rsa-key-type
-    :documentation "Key type")
-   (comment
-    :initarg :comment
-    :initform nil
-    :reader rsa-key-comment
-    :documentation "Key comment"))
-  (:documentation "Represents an OpenSSH RSA public key"))
+(define-condition base-error (simple-error)
+  ((description
+    :initarg :description
+    :reader error-description))
+  (:documentation "Base error condition"))
 
-(defmethod decode-key ((kind (eql :rsa-public-key)) stream &key type comment)
-  "Decodes an RSA public key from the given binary stream"
-  (let ((e (rfc4251:decode :mpint stream))
-        (n (rfc4251:decode :mpint stream)))
-    (make-instance 'rsa-public-key
-                   :e e
-                   :n n
-                   :type type
-                   :comment comment)))
+(define-condition invalid-public-key-error (base-error)
+  ()
+  (:documentation "Signaled when a public key file is detected as invalid"))
+
+(define-condition key-type-mismatch-error (base-error)
+  ((expected
+    :initarg :expected
+    :reader error-expected-key-type)
+   (found
+    :initarg :found
+    :reader error-found-key-type))
+  (:documentation "Signaled when there is a mismatch between the public key type and the encoded key type"))

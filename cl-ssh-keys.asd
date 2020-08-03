@@ -22,13 +22,13 @@
                :binascii)
   :components ((:module "core"
                 :pathname #P"src/"
-                :components ((:file "core")))
+                :components ((:file "package")
+                             (:file "conditions" :depends-on ("package"))
+                             (:file "generics" :depends-on ("package"))
+                             (:file "key-types" :depends-on ("package"))
+                             (:file "util" :depends-on ("package"))))
                (:module "keys"
                 :pathname #P"src/"
                 :depends-on ("core")
-                :components ((:file "rsa")))
-               (:module "client-package"
-                :pathname #P"src/"
-                :depends-on ("core" "keys")
-                :components ((:file "package"))))
+                :components ((:file "rsa"))))
   :in-order-to ((test-op (test-op "cl-ssh-keys.test"))))

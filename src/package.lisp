@@ -23,27 +23,37 @@
 ;; (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 ;; THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+(in-package :cl-user)
+(defpackage :cl-ssh-keys
+  (:use :cl)
+  (:nicknames :ssh-keys)
+  (:import-from
+   :ironclad
+   :rsa-key-exponent
+   :rsa-key-modulus)
+  (:import-from :cl-rfc4251)
+  (:import-from :uiop)
+  (:import-from :alexandria)
+  (:export
+   ;; conditions
+   :invalid-public-key-error
+   :key-type-mismatch-error
+
+   ;; generics
+   :decode-key
+
+   ;; key-types
+   :*key-types*
+   :get-key-type
+
+   ;; rsa
+   :rsa-public-key
+   :rsa-key-type
+   :rsa-key-comment
+   :rsa-key-exponent ;; Re-export from ironclad
+   :rsa-key-modulus  ;; Re-export from ironclad
+
+   ;; util
+   :public-key-file-parts
+   :parse-public-key-file))
 (in-package :cl-ssh-keys)
-
-(defclass rsa-public-key (ironclad:rsa-public-key)
-  ((type
-    :initarg :type
-    :initform (error "Must specify key type")
-    :reader rsa-key-type
-    :documentation "Key type")
-   (comment
-    :initarg :comment
-    :initform nil
-    :reader rsa-key-comment
-    :documentation "Key comment"))
-  (:documentation "Represents an OpenSSH RSA public key"))
-
-(defmethod decode-key ((kind (eql :rsa-public-key)) stream &key type comment)
-  "Decodes an RSA public key from the given binary stream"
-  (let ((e (rfc4251:decode :mpint stream))
-        (n (rfc4251:decode :mpint stream)))
-    (make-instance 'rsa-public-key
-                   :e e
-                   :n n
-                   :type type
-                   :comment comment)))

@@ -25,25 +25,5 @@
 
 (in-package :cl-ssh-keys)
 
-(defclass rsa-public-key (ironclad:rsa-public-key)
-  ((type
-    :initarg :type
-    :initform (error "Must specify key type")
-    :reader rsa-key-type
-    :documentation "Key type")
-   (comment
-    :initarg :comment
-    :initform nil
-    :reader rsa-key-comment
-    :documentation "Key comment"))
-  (:documentation "Represents an OpenSSH RSA public key"))
-
-(defmethod decode-key ((kind (eql :rsa-public-key)) stream &key type comment)
-  "Decodes an RSA public key from the given binary stream"
-  (let ((e (rfc4251:decode :mpint stream))
-        (n (rfc4251:decode :mpint stream)))
-    (make-instance 'rsa-public-key
-                   :e e
-                   :n n
-                   :type type
-                   :comment comment)))
+(defgeneric decode-key (kind stream &key)
+  (:documentation "Decodes a key with the given kind from the binary stream"))
