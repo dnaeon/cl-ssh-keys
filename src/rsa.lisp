@@ -47,3 +47,12 @@
                    :n n
                    :type type
                    :comment comment)))
+
+(defmethod encode-key ((key rsa-public-key) stream &key)
+  "Encodes the RSA public key according to RFC 4253, section 6.6"
+  (with-slots (type e n) key
+    (let ((key-type (getf type :plain)))
+      (+
+       (rfc4251:encode :string  key-type stream)
+       (rfc4251:encode :mpint e stream)
+       (rfc4251:encode :mpint n stream)))))
