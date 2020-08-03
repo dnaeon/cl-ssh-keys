@@ -54,14 +54,14 @@
                :found encoded-key-type-name))
 
       (alexandria:switch (key-type-name :test #'equal)
-        ("ssh-rsa" (decode-key :rsa-public-key stream :type key-type :comment comment))
+        ("ssh-rsa" (decode :rsa-public-key stream :kind key-type :comment comment))
         (t
          (error 'invalid-public-key-error :description (format nil "Unknown key type ~a" key-type-name)))))))
 
 (defun fingerprint (key &optional (hash :sha256))
   "Computes the fingerprint of the given key"
   (let* ((stream (rfc4251:make-binary-output-stream))
-         (encoded-size (encode-key key stream))
+         (encoded-size (encode :public-key key stream))
          (bytes (rfc4251:binary-output-stream-data stream)))
     (declare (ignore encoded-size))
     (case hash

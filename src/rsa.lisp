@@ -26,11 +26,11 @@
 (in-package :cl-ssh-keys)
 
 (defclass rsa-public-key (ironclad:rsa-public-key)
-  ((type
-    :initarg :type
-    :initform (error "Must specify key type")
-    :reader rsa-key-type
-    :documentation "Key type")
+  ((kind
+    :initarg :kind
+    :initform (error "Must specify key kind")
+    :reader rsa-key-kind
+    :documentation "Key kind")
    (comment
     :initarg :comment
     :initform nil
@@ -38,19 +38,25 @@
     :documentation "Key comment"))
   (:documentation "Represents an OpenSSH RSA public key"))
 
-(defmethod decode-key ((kind (eql :rsa-public-key)) stream &key type comment)
+(defmethod rfc4251:decode ((type (eql :rsa-public-key)) stream &key kind comment)
   "Decodes an RSA public key from the given binary stream"
-  (let ((e (rfc4251:decode :mpint stream))
-        (n (rfc4251:decode :mpint stream)))
-    (make-instance 'rsa-public-key
-                   :e e
-                   :n n
-                   :type type
-                   :comment comment)))
+  ;; RFC4251:DECODE returns multiple values -- the first one is the
+  ;; decoded value and the second one is the number of bytes that were
+  ;; read from the stream, in order to produce the given value.
+  (let* ((e-data (multiple-value-list (rfc4251:decode :mpint stream)))
+         (n-data (multiple-value-list (rfc4251:decode :mpint stream)))
+         (pk (make-instance 'rsa-public-key
+                            :e (first e-data)
+                            :n (first n-data)
+                            :kind kind
+                            :comment comment)))
+    (values
+     pk
+     (+ (second e-data) (second n-data)))))
 
-(defmethod encode-key ((key rsa-public-key) stream &key)
-  "Encodes the RSA public key according to RFC 4253, section 6.6"
-  (with-accessors ((type rsa-key-type) (e rsa-key-exponent) (n rsa-key-modulus)) key
+(defmethod rfc4251:encode ((type (eql :public-key)) (key rsa-public-key) stream &key)
+  "Encodes the public key into the given binary stream according to RFC 4253, section 6.6"
+  (with-accessors ((type rsa-key-kind) (e rsa-key-exponent) (n rsa-key-modulus)) key
     (let ((key-type (getf type :plain)))
       (+
        (rfc4251:encode :string  key-type stream)
