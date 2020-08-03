@@ -28,10 +28,11 @@
   (:use :cl)
   (:nicknames :ssh-keys.core)
   (:export
-   :*ssh-key-types*))
+   :*key-types*
+   :get-key-type))
 (in-package :cl-ssh-keys.core)
 
-(defparameter *ssh-key-types*
+(defparameter *key-types*
   '((:name "ssh-rsa"
      :plain "ssh-rsa"
      :short-name "RSA"
@@ -81,3 +82,10 @@
      :short-name "ED25519-CERT"
      :is-cert t))
   "OpenSSH key types")
+
+(defun get-key-type (name)
+  "Get the key type identified by the given name"
+  (find name *key-types*
+        :key (lambda (item)
+               (getf item :name))
+        :test #'string=))
