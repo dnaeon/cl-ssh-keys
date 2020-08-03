@@ -50,7 +50,7 @@
 
 (defmethod encode-key ((key rsa-public-key) stream &key)
   "Encodes the RSA public key according to RFC 4253, section 6.6"
-  (with-slots (type e n) key
+  (with-accessors ((type rsa-key-type) (e rsa-key-exponent) (n rsa-key-modulus)) key
     (let ((key-type (getf type :plain)))
       (+
        (rfc4251:encode :string  key-type stream)
