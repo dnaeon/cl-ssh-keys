@@ -34,6 +34,8 @@
    :*key-types*
    :decode
    :get-key-type
+   :public-key-file-parts
+   :parse-public-key-file
    :base-error
    :invalid-public-key-error
    :key-type-mismatch-error))
@@ -118,3 +120,36 @@
         :key (lambda (item)
                (getf item :name))
         :test #'string=))
+
+(defun public-key-file-parts (path)
+  "Returns the parts of an OpenSSH public key file"
+  (with-open-file (in path)
+    (uiop:split-string (read-line in) :separator '(#\Space))))
+
+(defun parse-public-key-file (path)
+  "Parses an OpenSSH public key file from the given path"
+  (let* ((parts (public-key-file-parts path))
+         (key-type (get-key-type (first parts)))
+         (data (second parts))
+         (comment (third parts)))
+    ;; We need a key identifier
+    (unless key-type
+      (error 'invalid-public-key-error
+             :description "Missing key type"))
+
+    ;; OpenSSH public keys are encoded in a way, so that the
+    ;; key kind preceeds the actual public key components.
+    ;; See RFC 4253 for more details.
+    (let* ((stream (rfc4251:make-binary-input-stream (binascii:decode-base64 data)))
+           (key-type-name (getf key-type :name))
+           (encoded-key-type-name (rfc4251:decode :string stream)))
+      (unless (string= key-type-name encoded-key-type-name)
+        (error 'key-type-mismatch-error
+               :description "Key types mismatch"
+               :expected want-key-type-name
+               :found encoded-key-type-name))
+
+      (alexandria:switch (key-type-name :test #'equal)
+        ("ssh-rsa" (decode-key :rsa-public-key stream :type key-type :comment comment))
+        (t
+         (error 'invalid-public-key-error :description (format nil "Unknown key type ~a" key-type-name)))))))
