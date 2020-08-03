@@ -15,7 +15,11 @@
   :homepage "https://github.com/dnaeon/cl-ssh-keys"
   :bug-tracker "https://github.com/dnaeon/cl-ssh-keys"
   :source-control "https://github.com/dnaeon/cl-ssh-keys"
-  :depends-on (:cl-rfc4251)
+  :depends-on (:cl-rfc4251
+               :ironclad
+               :uiop
+               :alexandria
+               :binascii)
   :components ((:module "core"
                 :pathname #P"src/"
                 :components ((:file "core")))

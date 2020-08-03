@@ -27,9 +27,16 @@
 (defpackage :cl-ssh-keys.core
   (:use :cl)
   (:nicknames :ssh-keys.core)
+  (:import-from :uiop)
+  (:import-from :cl-rfc4251)
+  (:import-from :binascii)
   (:export
    :*key-types*
-   :get-key-type))
+   :decode
+   :get-key-type
+   :base-error
+   :invalid-public-key-error
+   :key-type-mismatch-error))
 (in-package :cl-ssh-keys.core)
 
 (defparameter *key-types*
@@ -82,6 +89,9 @@
      :short-name "ED25519-CERT"
      :is-cert t))
   "OpenSSH key types")
+
+(defgeneric decode-key (kind stream &key)
+  (:documentation "Decodes a key with the given kind from the binary stream"))
 
 (define-condition base-error (simple-error)
   ((description
