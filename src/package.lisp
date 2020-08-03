@@ -40,10 +40,6 @@
    :key-type-mismatch-error
    :unknown-fingerprint-hash-error
 
-   ;; generics
-   :decode-key
-   :encode-key
-
    ;; key-types
    :*key-types*
    :get-key-type
