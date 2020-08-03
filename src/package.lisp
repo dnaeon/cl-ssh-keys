@@ -38,6 +38,7 @@
    ;; conditions
    :invalid-public-key-error
    :key-type-mismatch-error
+   :unknown-fingerprint-hash-error
 
    ;; generics
    :decode-key
@@ -56,5 +57,6 @@
 
    ;; util
    :public-key-file-parts
-   :parse-public-key-file))
+   :parse-public-key-file
+   :fingerprint))
 (in-package :cl-ssh-keys)

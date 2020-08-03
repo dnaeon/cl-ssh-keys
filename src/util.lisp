@@ -57,3 +57,28 @@
         ("ssh-rsa" (decode-key :rsa-public-key stream :type key-type :comment comment))
         (t
          (error 'invalid-public-key-error :description (format nil "Unknown key type ~a" key-type-name)))))))
+
+(defun fingerprint (key &optional (hash :sha256))
+  "Computes the fingerprint of the given key"
+  (let* ((stream (rfc4251:make-binary-output-stream))
+         (encoded-size (encode-key key stream))
+         (bytes (rfc4251:binary-output-stream-data stream)))
+    (declare (ignore encoded-size))
+    (case hash
+      ((:sha1 :sha256) (fingerprint-sha1/sha256 bytes hash))
+      (:md5 (fingerprint-md5 bytes))
+      (t
+       (error 'unknown-fingerprint-hash-error
+              :description (format nil "Unknown fingerprint hash algorithm ~a" hash))))))
+
+(defun fingerprint-sha1/sha256 (bytes &optional (hash :sha256))
+  "Computes the SHA-1 or SHA-256 fingerprint of the given bytes"
+  (let* ((digest (ironclad:digest-sequence hash bytes))
+         (encoded (binascii:encode-base64 digest))
+         (trim-position (position #\= encoded :test #'char=)))
+    (subseq encoded 0 trim-position)))
+
+(defun fingerprint-md5 (bytes)
+  "Computes the MD5 fingerprint of the given bytes"
+  (let* ((digest (ironclad:digest-sequence :md5 bytes)))
+    (format nil "~{~(~2,'0x~)~^:~}" (map 'list #'identity digest))))
