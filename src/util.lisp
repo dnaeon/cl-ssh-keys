@@ -61,7 +61,7 @@
 (defun fingerprint (key &optional (hash :sha256))
   "Computes the fingerprint of the given key"
   (let* ((stream (rfc4251:make-binary-output-stream))
-         (encoded-size (encode :public-key key stream))
+         (encoded-size (rfc4251:encode :public-key key stream))
          (bytes (rfc4251:binary-output-stream-data stream)))
     (declare (ignore encoded-size))
     (case hash
