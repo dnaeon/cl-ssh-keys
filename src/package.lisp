@@ -46,12 +46,12 @@
 
    ;; rsa
    :rsa-public-key
-   :rsa-key-type
+   :rsa-key-kind
    :rsa-key-comment
    :rsa-key-exponent ;; Re-export from ironclad
    :rsa-key-modulus  ;; Re-export from ironclad
 
-   ;; util
+   ;; common
    :public-key-file-parts
    :parse-public-key-file
    :fingerprint))
