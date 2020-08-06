@@ -58,7 +58,7 @@ from the binary stream and then dispatched to the respective implementation."
   (let* ((key-type-name (or key-type-name (rfc4251:decode :string stream)))
          (key-type (get-key-type key-type-name :by :name))
          (key-id (getf key-type :id)))
-    (alexandria:switch (key-id :test #'equal)
+    (case key-id
       (:ssh-rsa (rfc4251:decode :rsa-public-key stream :kind key-type :comment comment))
       (t
        (error 'invalid-key-error
