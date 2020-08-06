@@ -68,6 +68,7 @@
    :key-kdf-options
    :key-checksum-int
    :extract-private-key
+   :extract-private-key-from-file
    :private-key-padding-is-correct-p
 
    ;; rsa

@@ -98,6 +98,11 @@
              (write-string line s))
     s))
 
+(defun extract-private-key-from-file (path)
+  "Extracts the private key contents from the given path"
+  (with-open-file (in path)
+    (extract-private-key in)))
+
 (defun private-key-padding-is-correct-p (stream)
   "Predicate for deterministic check of padding after private key"
   (loop for byte = (read-byte stream nil :eof)
