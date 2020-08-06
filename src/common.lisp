@@ -55,6 +55,20 @@
   (with-open-file (in path)
     (uiop:split-string (read-line in) :separator '(#\Space))))
 
+(defmethod rfc4251:decode ((type (eql :public-key)) stream &key key-type-name comment)
+  "Decode a public key from the given stream. If KEY-TYPE-NAME is specified
+then we dispatch decoding to the respective implementation of the given
+KEY-TYPE-NAME (e.g. ssh-rsa). Otherwise the KEY-TYPE-NAME is first decoded
+from the binary stream and then dispatched to the respective implementation."
+  (let* ((key-type-name (or key-type-name (rfc4251:decode :string stream)))
+         (key-type (get-key-type key-type-name :by :name))
+         (key-id (getf key-type :id)))
+    (alexandria:switch (key-id :test #'equal)
+      (:ssh-rsa (rfc4251:decode :rsa-public-key stream :kind key-type :comment comment))
+      (t
+       (error 'invalid-key-error
+              :description (format nil "Unknown key type ~a" key-type-name))))))
+
 (defun parse-public-key-file (path)
   "Parses an OpenSSH public key file from the given path"
   (let* ((parts (public-key-file-parts path))
