@@ -25,6 +25,21 @@
 
 (in-package :cl-ssh-keys)
 
+(alexandria:define-constant +private-key-auth-magic+
+  "openssh-key-v1"
+  :test #'equal
+  :documentation "OpenSSH private key AUTH_MAGIC header")
+
+(alexandria:define-constant +private-key-mark-begin+
+  "-----BEGIN OPENSSH PRIVATE KEY-----"
+  :test #'string-equal
+  :documentation "Beginning marker for OpenSSH private keys")
+
+(alexandria:define-constant +private-key-mark-end+
+  "-----END OPENSSH PRIVATE KEY-----"
+  :test #'string-equal
+  :documentation "Ending marker for OpenSSH private keys")
+
 (defclass base-key ()
   ((kind
     :initarg :kind
