@@ -25,3 +25,6 @@
 
 (defgeneric fingerprint (hash-spec key &key)
   (:documentation "Computes the fingerprint of the given KEY using the HASH-SPEC"))
+
+(defgeneric key-bits (key)
+  (:documentation "Returns the number of bits for the key"))

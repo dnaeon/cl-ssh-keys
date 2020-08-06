@@ -42,6 +42,7 @@
 
    ;; generics
    :fingerprint
+   :key-bits
 
    ;; key-types
    :*key-types*
