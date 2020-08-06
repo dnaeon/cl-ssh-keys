@@ -50,21 +50,9 @@
      pk
      (+ (second e-data) (second n-data)))))
 
-(defmethod rfc4251:encode ((type (eql :public-key)) (key rsa-public-key) stream &key (encode-key-type-p t))
-  "Encodes the public key into the given binary stream according to RFC 4253, section 6.6.
-If ENCODE-KEY-TYPE-P is T, then the key type name (e.g. ssh-rsa) is encoded in the stream,
-before the actual public key components. Some key types (e.g. OpenSSH certificate keys)
-do not encode the key type name, when being embedded within a certificate."
-  (with-accessors ((kind key-kind) (e rsa-key-exponent) (n rsa-key-modulus)) key
-    (if encode-key-type-p
-        ;; Encode with key-type name
-        (+
-         (rfc4251:encode :string (getf kind :plain-name) stream)
-         (rfc4251:encode :mpint e stream)
-         (rfc4251:encode :mpint n stream))
-        ;; Encode *without* key-type name, e.g. this public key is
-        ;; embedded within a certificate key, which does not strictly
-        ;; follow the rules of RFC 4253 encoding.
-        (+
-         (rfc4251:encode :mpint e stream)
-         (rfc4251:encode :mpint n stream)))))
+(defmethod rfc4251:encode ((type (eql :rsa-public-key)) (key rsa-public-key) stream &key)
+  "Encodes the RSA public key into the given binary stream."
+  (with-accessors ((e rsa-key-exponent) (n rsa-key-modulus)) key
+    (+
+     (rfc4251:encode :mpint e stream)    ;; RSA public exponent
+     (rfc4251:encode :mpint n stream)))) ;; RSA modulus
