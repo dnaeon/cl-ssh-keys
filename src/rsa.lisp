@@ -52,7 +52,12 @@
 
 (defmethod rfc4251:encode ((type (eql :rsa-public-key)) (key rsa-public-key) stream &key)
   "Encodes the RSA public key into the given binary stream."
-  (with-accessors ((e rsa-key-exponent) (n rsa-key-modulus)) key
+  (with-accessors ((e ironclad:rsa-key-exponent) (n ironclad:rsa-key-modulus)) key
     (+
      (rfc4251:encode :mpint e stream)    ;; RSA public exponent
      (rfc4251:encode :mpint n stream)))) ;; RSA modulus
+
+(defmethod key-bits ((key rsa-public-key))
+  "Returns the number of bits for the RSA public key"
+  (with-accessors ((n ironclad:rsa-key-modulus)) key
+    (integer-length n)))
