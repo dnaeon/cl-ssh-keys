@@ -194,3 +194,18 @@ type name, when being embedded within a certificate."
   "Parses an OpenSSH public key from the given path"
   (with-open-file (in path)
     (parse-public-key (read-line in))))
+
+(defun extract-private-key (stream)
+  "Extracts the private key contents from the given stream"
+  (with-output-to-string (s)
+    ;; First line should be the beginning marker
+    (unless (string= +private-key-mark-begin+
+                     (read-line stream))
+      (error 'invalid-key-error
+             :description "Invalid private key format"))
+    ;; Read until the end marker
+    (loop for line = (read-line stream nil nil)
+          until (string= line +private-key-mark-end+)
+          do
+             (write-string line s))
+    s))

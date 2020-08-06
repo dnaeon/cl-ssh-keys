@@ -65,5 +65,6 @@
    :key-checksum-int
 
    :parse-public-key
-   :parse-public-key-from-file))
+   :parse-public-key-from-file
+   :extract-private-key))
 (in-package :cl-ssh-keys)
