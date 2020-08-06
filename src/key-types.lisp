@@ -29,50 +29,62 @@
   '((:name "ssh-rsa"
      :plain-name "ssh-rsa"
      :short-name "RSA"
+     :id :ssh-rsa
      :is-cert nil)
     (:name "ssh-rsa-cert-v01@openssh.com"
      :plain-name "ssh-rsa"
      :short-name "RSA-CERT"
+     :id :ssh-rsa-cert
      :is-cert t)
     (:name "ssh-dss"
      :plain-name "ssh-dss"
      :short-name "DSA"
+     :id :ssh-dsa
      :is-cert nil)
     (:name "ssh-dss-cert-v01@openssh.com"
      :plain-name "ssh-dss"
      :short-name "DSA-CERT"
+     :id :ssh-dsa-cert
      :is-cert t)
     (:name "ecdsa-sha2-nistp256"
      :plain-name "ecdsa-sha2-nistp256"
      :short-name "ECDSA"
+     :id :ssh-ecdsa-256
      :is-cert nil)
     (:name "ecdsa-sha2-nistp384"
      :plain-name "ecdsa-sha2-nistp384"
      :short-name "ECDSA"
+     :id :ssh-ecdsa-384
      :is-cert nil)
     (:name "ecdsa-sha2-nistp521"
      :plain-name "ecdsa-sha2-nistp521"
      :short-name "ECDSA"
+     :id :ssh-ecdsa-521
      :is-cert nil)
     (:name "ecdsa-sha2-nistp256-cert-v01@openssh.com"
      :plain-name "ecdsa-sha2-nistp256"
      :short-name "ECDSA-CERT"
+     :id :ssh-ecdsa-256-cert
      :is-cert t)
     (:name "ecdsa-sha2-nistp384-cert-v01@openssh.com"
      :plain-name "ecdsa-sha2-nistp384"
      :short-name "ECDSA-CERT"
+     :id :ssh-dsa-384-cert
      :is-cert t)
     (:name "ecdsa-sha2-nistp521-cert-v01@openssh.com"
      :plain-name "ecdsa-sha2-nistp521"
      :short-name "ECDSA-CERT"
+     :id :ssh-dsa-521-cert
      :is-cert t)
     (:name "ssh-ed25519"
      :plain-name "ssh-ed25519"
      :short-name "ED25519"
+     :id :ssh-ed25519
      :is-cert nil)
     (:name "ssh-ed25519-cert-v01@openssh.com"
      :plain-name "ssh-ed25519"
      :short-name "ED25519-CERT"
+     :id :ssh-ed25519-cert
      :is-cert t))
   "OpenSSH key types")
 
