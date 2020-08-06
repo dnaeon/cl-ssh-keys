@@ -123,3 +123,18 @@ from the binary stream and then dispatched to the respective implementation."
          (trim-position (position #\= encoded :test #'char=))) ;; Trim padding characters
     (declare (ignore size))
     (subseq encoded 0 trim-position)))
+
+(defmethod fingerprintf ((hash-spec (eql :md5)) (key base-private-key) &key)
+  "Computes the MD5 fingerprint of the embedded public key"
+  (with-slots (public-key) key
+    (fingerprint :md5 public-key)))
+
+(defmethod fingerprint ((hash-spec (eql :sha1)) (key base-private-key) &key)
+  "Computes the SHA-1 fingerprint of the embedded public key"
+  (with-slots (public-key) key
+    (fingerprint :sha1 public-key)))
+
+(defmethod fingerprint ((hash-spec (eql :sha256)) (key base-private-key) &key)
+  "Computes the SHA-256 fingerprint of the embedded public key"
+  (with-slots (public-key) key
+    (fingerprint :sha256 public-key)))
