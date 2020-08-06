@@ -25,6 +25,31 @@
 
 (in-package :cl-ssh-keys)
 
+(defclass base-key ()
+  ((kind
+    :initarg :kind
+    :initform (error "Must specify key kind")
+    :reader key-kind
+    :documentation "SSH key kind")
+   (comment
+    :initarg :comment
+    :initform nil
+    :reader key-comment
+    :documentation "Comment associated with the key"))
+  (:documentation "Base class for representing an OpenSSH key"))
+
+(defclass base-public-key (base-key)
+  ()
+  (:documentation "Base class for representing an OpenSSH public key"))
+
+(defclass base-private-key (base-key)
+  ((public-key
+    :initarg :public-key
+    :initform (error "Must specify public key")
+    :reader embedded-public-key
+    :documentation "Public key embedded in the private key"))
+  (:documentation "Base class for representing an OpenSSH private key"))
+
 (defun public-key-file-parts (path)
   "Returns the parts of an OpenSSH public key file"
   (with-open-file (in path)

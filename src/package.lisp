@@ -52,6 +52,10 @@
    :rsa-key-modulus  ;; Re-export from ironclad
 
    ;; common
+   :key-kind
+   :key-comment
+   :embedded-public-key
+
    :public-key-file-parts
    :parse-public-key-file
    :fingerprint))
