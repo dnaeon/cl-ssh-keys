@@ -93,27 +93,33 @@ from the binary stream and then dispatched to the respective implementation."
   (with-open-file (in path)
     (parse-public-key (read-line in))))
 
-(defun fingerprint (key &optional (hash :sha256))
-  "Computes the fingerprint of the given key"
+(defmethod fingerprint ((hash-spec (eql :md5)) (key base-public-key) &key)
+  "Computes the MD5 fingerprint of the given public key"
   (let* ((stream (rfc4251:make-binary-output-stream))
-         (encoded-size (rfc4251:encode :public-key key stream))
-         (bytes (rfc4251:binary-output-stream-data stream)))
-    (declare (ignore encoded-size))
-    (case hash
-      ((:sha1 :sha256) (fingerprint-sha1/sha256 bytes hash))
-      (:md5 (fingerprint-md5 bytes))
-      (t
-       (error 'unknown-fingerprint-hash-error
-              :description (format nil "Unknown fingerprint hash algorithm ~a" hash))))))
+         (size (rfc4251:encode :public-key key stream))
+         (bytes (rfc4251:binary-output-stream-data stream))
+         (digest (ironclad:digest-sequence :md5 bytes)))
+    (declare (ignore size))
+    (format nil "~{~(~2,'0x~)~^:~}" (coerce digest 'list))))
 
-(defun fingerprint-sha1/sha256 (bytes &optional (hash :sha256))
-  "Computes the SHA-1 or SHA-256 fingerprint of the given bytes"
-  (let* ((digest (ironclad:digest-sequence hash bytes))
+(defmethod fingerprint ((hash-spec (eql :sha1)) (key base-public-key) &key)
+  "Computes the SHA-1 fingerprint of the given public key"
+  (let* ((stream (rfc4251:make-binary-output-stream))
+         (size (rfc4251:encode :public-key key stream))
+         (bytes (rfc4251:binary-output-stream-data stream))
+         (digest (ironclad:digest-sequence :sha1 bytes))
          (encoded (binascii:encode-base64 digest))
-         (trim-position (position #\= encoded :test #'char=)))
+         (trim-position (position #\= encoded :test #'char=))) ;; Trim padding characters
+    (declare (ignore size))
     (subseq encoded 0 trim-position)))
 
-(defun fingerprint-md5 (bytes)
-  "Computes the MD5 fingerprint of the given bytes"
-  (let* ((digest (ironclad:digest-sequence :md5 bytes)))
-    (format nil "~{~(~2,'0x~)~^:~}" (map 'list #'identity digest))))
+(defmethod fingerprint ((hash-spec (eql :sha256)) (key base-public-key) &key)
+  "Computes the SHA-256 fingerprint of the given public key"
+  (let* ((stream (rfc4251:make-binary-output-stream))
+         (size (rfc4251:encode :public-key key stream))
+         (bytes (rfc4251:binary-output-stream-data stream))
+         (digest (ironclad:digest-sequence :sha256 bytes))
+         (encoded (binascii:encode-base64 digest))
+         (trim-position (position #\= encoded :test #'char=))) ;; Trim padding characters
+    (declare (ignore size))
+    (subseq encoded 0 trim-position)))

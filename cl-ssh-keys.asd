@@ -23,6 +23,7 @@
   :components ((:module "core"
                 :pathname #P"src/"
                 :components ((:file "package")
+                             (:file "generics" :depends-on ("package"))
                              (:file "common" :depends-on ("package"))
                              (:file "conditions" :depends-on ("package"))
                              (:file "key-types" :depends-on ("package"))))
