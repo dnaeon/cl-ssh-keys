@@ -66,5 +66,6 @@
 
    :parse-public-key
    :parse-public-key-from-file
-   :extract-private-key))
+   :extract-private-key
+   :private-key-padding-is-correct-p))
 (in-package :cl-ssh-keys)

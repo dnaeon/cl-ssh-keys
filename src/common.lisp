@@ -209,3 +209,12 @@ type name, when being embedded within a certificate."
           do
              (write-string line s))
     s))
+
+(defun private-key-padding-is-correct-p (stream)
+  "Predicate for deterministic check of padding after private key"
+  (loop for byte = (read-byte stream nil :eof)
+        for i from 1
+        until (equal byte :eof) do
+          (unless (= byte i)
+            (return-from private-key-padding-is-correct-p nil)))
+  t)
