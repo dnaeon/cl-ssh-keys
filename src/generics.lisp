@@ -23,42 +23,5 @@
 ;; (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 ;; THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
-(defpackage :cl-ssh-keys
-  (:use :cl)
-  (:nicknames :ssh-keys)
-  (:import-from
-   :ironclad
-   :rsa-key-exponent
-   :rsa-key-modulus)
-  (:import-from :cl-rfc4251)
-  (:import-from :uiop)
-  (:import-from :alexandria)
-  (:export
-   ;; conditions
-   :invalid-public-key-error
-   :key-type-mismatch-error
-   :unknown-fingerprint-hash-error
-
-   ;; generics
-   :fingerprint
-
-   ;; key-types
-   :*key-types*
-   :get-key-type
-
-   ;; rsa
-   :rsa-public-key
-   :rsa-key-kind
-   :rsa-key-comment
-   :rsa-key-exponent ;; Re-export from ironclad
-   :rsa-key-modulus  ;; Re-export from ironclad
-
-   ;; common
-   :key-kind
-   :key-comment
-   :embedded-public-key
-
-   :parse-public-key
-   :parse-public-key-from-file))
-(in-package :cl-ssh-keys)
+(defgeneric fingerprint (hash-spec key &key)
+  (:documentation "Computes the fingerprint of the given KEY using the HASH-SPEC"))
