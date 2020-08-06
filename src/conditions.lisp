@@ -31,7 +31,7 @@
     :reader error-description))
   (:documentation "Base error condition"))
 
-(define-condition invalid-public-key-error (base-error)
+(define-condition invalid-key-error (base-error)
   ()
   (:documentation "Signaled when a public key file is detected as invalid"))
 

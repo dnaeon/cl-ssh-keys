@@ -63,8 +63,8 @@
          (comment (third parts)))
     ;; We need a key identifier
     (unless key-type
-      (error 'invalid-public-key-error
-             :description "Missing key type"))
+      (error 'invalid-key-error
+             :description "Invalid key: missing key type"))
 
     ;; OpenSSH public keys are encoded in a way, so that the
     ;; key kind preceeds the actual public key components.
@@ -74,14 +74,14 @@
            (encoded-key-type-name (rfc4251:decode :string stream)))
       (unless (string= key-type-name encoded-key-type-name)
         (error 'key-type-mismatch-error
-               :description "Key types mismatch"
+               :description "Invalid key: key types mismatch"
                :expected want-key-type-name
                :found encoded-key-type-name))
 
       (alexandria:switch (key-type-name :test #'equal)
         ("ssh-rsa" (decode :rsa-public-key stream :kind key-type :comment comment))
         (t
-         (error 'invalid-public-key-error :description (format nil "Unknown key type ~a" key-type-name)))))))
+         (error 'invalid-key-error :description (format nil "Unknown key type ~a" key-type-name)))))))
 
 (defun fingerprint (key &optional (hash :sha256))
   "Computes the fingerprint of the given key"
