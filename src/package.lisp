@@ -56,7 +56,7 @@
    :key-comment
    :embedded-public-key
 
-   :public-key-file-parts
-   :parse-public-key-file
+   :parse-public-key
+   :parse-public-key-from-file
    :fingerprint))
 (in-package :cl-ssh-keys)

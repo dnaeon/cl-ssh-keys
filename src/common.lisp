@@ -50,11 +50,6 @@
     :documentation "Public key embedded in the private key"))
   (:documentation "Base class for representing an OpenSSH private key"))
 
-(defun public-key-file-parts (path)
-  "Returns the parts of an OpenSSH public key file"
-  (with-open-file (in path)
-    (uiop:split-string (read-line in) :separator '(#\Space))))
-
 (defmethod rfc4251:decode ((type (eql :public-key)) stream &key key-type-name comment)
   "Decode a public key from the given stream. If KEY-TYPE-NAME is specified
 then we dispatch decoding to the respective implementation of the given
@@ -69,16 +64,16 @@ from the binary stream and then dispatched to the respective implementation."
        (error 'invalid-key-error
               :description (format nil "Unknown key type ~a" key-type-name))))))
 
-(defun parse-public-key-file (path)
-  "Parses an OpenSSH public key file from the given path"
-  (let* ((parts (public-key-file-parts path))
-         (key-type (get-key-type (first parts)))
+(defun parse-public-key (text)
+  "Parses an OpenSSH public key file from the given plain-text string"
+  (let* ((parts (uiop:split-string text :separator '(#\Space)))
+         (key-type (get-key-type (first parts) :by :name))
          (data (second parts))
          (comment (third parts)))
-    ;; We need a key identifier
+    ;; A key type identifier is expected
     (unless key-type
       (error 'invalid-key-error
-             :description "Invalid key: missing key type"))
+             :description "Invalid key: missing or unknown key type"))
 
     ;; OpenSSH public keys are encoded in a way, so that the
     ;; key kind preceeds the actual public key components.
@@ -89,13 +84,14 @@ from the binary stream and then dispatched to the respective implementation."
       (unless (string= key-type-name encoded-key-type-name)
         (error 'key-type-mismatch-error
                :description "Invalid key: key types mismatch"
-               :expected want-key-type-name
+               :expected key-type-name
                :found encoded-key-type-name))
+      (rfc4251:decode :public-key stream :key-type-name key-type-name :comment comment))))
 
-      (alexandria:switch (key-type-name :test #'equal)
-        ("ssh-rsa" (decode :rsa-public-key stream :kind key-type :comment comment))
-        (t
-         (error 'invalid-key-error :description (format nil "Unknown key type ~a" key-type-name)))))))
+(defun parse-public-key-from-file (path)
+  "Parses an OpenSSH public key from the given path"
+  (with-open-file (in path)
+    (parse-public-key (read-line in))))
 
 (defun fingerprint (key &optional (hash :sha256))
   "Computes the fingerprint of the given key"
