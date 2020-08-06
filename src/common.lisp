@@ -132,7 +132,7 @@ type name, when being embedded within a certificate."
     (fingerprint :sha256 public-key)))
 
 (defun parse-public-key (text)
-  "Parses an OpenSSH public key file from the given plain-text string"
+  "Parses an OpenSSH public key from the given plain-text string"
   (let* ((parts (uiop:split-string text :separator '(#\Space)))
          (key-type (get-key-type (first parts) :by :name))
          (data (second parts))
