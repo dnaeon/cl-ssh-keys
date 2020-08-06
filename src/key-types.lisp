@@ -27,58 +27,58 @@
 
 (defparameter *key-types*
   '((:name "ssh-rsa"
-     :plain "ssh-rsa"
+     :plain-name "ssh-rsa"
      :short-name "RSA"
      :is-cert nil)
     (:name "ssh-rsa-cert-v01@openssh.com"
-     :plain "ssh-rsa"
+     :plain-name "ssh-rsa"
      :short-name "RSA-CERT"
      :is-cert t)
     (:name "ssh-dss"
-     :plain "ssh-dss"
+     :plain-name "ssh-dss"
      :short-name "DSA"
      :is-cert nil)
     (:name "ssh-dss-cert-v01@openssh.com"
-     :plain "ssh-dss"
+     :plain-name "ssh-dss"
      :short-name "DSA-CERT"
      :is-cert t)
     (:name "ecdsa-sha2-nistp256"
-     :plain "ecdsa-sha2-nistp256"
+     :plain-name "ecdsa-sha2-nistp256"
      :short-name "ECDSA"
      :is-cert nil)
     (:name "ecdsa-sha2-nistp384"
-     :plain "ecdsa-sha2-nistp384"
+     :plain-name "ecdsa-sha2-nistp384"
      :short-name "ECDSA"
      :is-cert nil)
     (:name "ecdsa-sha2-nistp521"
-     :plain "ecdsa-sha2-nistp521"
+     :plain-name "ecdsa-sha2-nistp521"
      :short-name "ECDSA"
      :is-cert nil)
     (:name "ecdsa-sha2-nistp256-cert-v01@openssh.com"
-     :plain "ecdsa-sha2-nistp256"
+     :plain-name "ecdsa-sha2-nistp256"
      :short-name "ECDSA-CERT"
      :is-cert t)
     (:name "ecdsa-sha2-nistp384-cert-v01@openssh.com"
-     :plain "ecdsa-sha2-nistp384"
+     :plain-name "ecdsa-sha2-nistp384"
      :short-name "ECDSA-CERT"
      :is-cert t)
     (:name "ecdsa-sha2-nistp521-cert-v01@openssh.com"
-     :plain "ecdsa-sha2-nistp521"
+     :plain-name "ecdsa-sha2-nistp521"
      :short-name "ECDSA-CERT"
      :is-cert t)
     (:name "ssh-ed25519"
-     :plain "ssh-ed25519"
+     :plain-name "ssh-ed25519"
      :short-name "ED25519"
      :is-cert nil)
     (:name "ssh-ed25519-cert-v01@openssh.com"
-     :plain "ssh-ed25519"
+     :plain-name "ssh-ed25519"
      :short-name "ED25519-CERT"
      :is-cert t))
   "OpenSSH key types")
 
-(defun get-key-type (name)
-  "Get the key type identified by the given name"
-  (find name *key-types*
+(defun get-key-type (value &key (by :name))
+  "Get the key type identified by the given value and property"
+  (find value *key-types*
         :key (lambda (item)
-               (getf item :name))
-        :test #'string=))
+               (getf item by))
+        :test #'equal))
