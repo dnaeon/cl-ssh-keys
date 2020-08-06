@@ -59,6 +59,10 @@
    :key-kind
    :key-comment
    :embedded-public-key
+   :key-cipher-name
+   :key-kdf-name
+   :key-kdf-options
+   :key-checksum-int
 
    :parse-public-key
    :parse-public-key-from-file))

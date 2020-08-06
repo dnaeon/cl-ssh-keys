@@ -47,7 +47,27 @@
     :initarg :public-key
     :initform (error "Must specify public key")
     :reader embedded-public-key
-    :documentation "Public key embedded in the private key"))
+    :documentation "Public key embedded in the private key")
+   (cipher-name
+    :initarg :cipher-name
+    :initform (error "Must specify cipher name")
+    :reader key-cipher-name
+    :documentation "Private key cipher name")
+   (kdf-name
+    :initarg :kdf-name
+    :initform (error "Must specify KDF name")
+    :reader key-kdf-name
+    :documentation "Private key KDF name")
+   (kdf-options
+    :initarg :kdf-options
+    :initform (error "Must specify KDF options")
+    :reader key-kdf-options
+    :documentation "Private key KDF options")
+   (checksum-int
+    :initarg :checksum-int
+    :initform (error "Must specify checksum integer")
+    :reader key-checksum-int
+    :documentation "Checksum integer for private keys"))
   (:documentation "Base class for representing an OpenSSH private key"))
 
 (defmethod rfc4251:decode ((type (eql :public-key)) stream &key key-type-name comment)
@@ -140,7 +160,7 @@ type name, when being embedded within a certificate."
     ;; A key type identifier is expected
     (unless key-type
       (error 'invalid-key-error
-             :description "Invalid key: missing or unknown key type"))
+             :description "Missing or unknown key type"))
 
     ;; OpenSSH public keys are encoded in a way, so that the
     ;; key kind preceeds the actual public key components.
@@ -150,7 +170,7 @@ type name, when being embedded within a certificate."
            (encoded-key-type-name (rfc4251:decode :string stream)))
       (unless (string= key-type-name encoded-key-type-name)
         (error 'key-type-mismatch-error
-               :description "Invalid key: key types mismatch"
+               :description "Key types mismatch"
                :expected key-type-name
                :found encoded-key-type-name))
       (rfc4251:decode :public-key stream :key-type-name key-type-name :comment comment))))
