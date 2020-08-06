@@ -30,15 +30,19 @@
   (:import-from
    :ironclad
    :rsa-key-exponent
-   :rsa-key-modulus)
+   :rsa-key-modulus
+   :rsa-key-prime-p
+   :rsa-key-prime-q)
   (:import-from :cl-rfc4251)
   (:import-from :uiop)
   (:import-from :alexandria)
   (:export
+   :key-kind
+   :key-comment
+
    ;; conditions
    :invalid-public-key-error
    :key-type-mismatch-error
-   :unknown-fingerprint-hash-error
 
    ;; generics
    :fingerprint
@@ -48,24 +52,41 @@
    :*key-types*
    :get-key-type
 
-   ;; rsa
-   :rsa-public-key
-   :rsa-key-kind
-   :rsa-key-comment
-   :rsa-key-exponent ;; Re-export from ironclad
-   :rsa-key-modulus  ;; Re-export from ironclad
+   ;; public-key
+   :base-public-key
+   :parse-public-key
+   :parse-public-key-from-file
 
-   ;; common
-   :key-kind
-   :key-comment
+   ;; private-key
+   :+private-key-auth-magic+
+   :+private-key-mark-begin+
+   :+private-key-mark-end+
+   :base-private-key
    :embedded-public-key
    :key-cipher-name
    :key-kdf-name
    :key-kdf-options
    :key-checksum-int
-
-   :parse-public-key
-   :parse-public-key-from-file
    :extract-private-key
-   :private-key-padding-is-correct-p))
+   :private-key-padding-is-correct-p
+
+   ;; rsa
+   :rsa-public-key
+   :rsa-key-exponent  ;; Re-export from ironclad
+   :rsa-key-modulus   ;; Re-export from ironclad
+   :rsa-key-prime-p   ;; Re-export from ironclad
+   :rsa-key-prime-q)) ;; Re-export from ironclad
 (in-package :cl-ssh-keys)
+
+(defclass base-key ()
+  ((kind
+    :initarg :kind
+    :initform (error "Must specify key kind")
+    :reader key-kind
+    :documentation "SSH key kind")
+   (comment
+    :initarg :comment
+    :initform nil
+    :reader key-comment
+    :documentation "Comment associated with the key"))
+  (:documentation "Base class for representing an OpenSSH key"))

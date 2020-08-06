@@ -43,7 +43,3 @@
     :initarg :found
     :reader error-found-key-type))
   (:documentation "Signaled when there is a mismatch between the public key type and the encoded key type"))
-
-(define-condition unknown-fingerprint-hash-error (base-error)
-  ()
-  (:documentation "Signaled when attempting to compute a key's fingerprint using unknown hash"))
