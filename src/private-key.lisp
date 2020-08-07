@@ -68,58 +68,11 @@
     :documentation "Checksum integer for private keys"))
   (:documentation "Base class for representing an OpenSSH private key"))
 
-(defmethod fingerprint ((hash-spec (eql :md5)) (key base-private-key) &key)
-  "Computes the MD5 fingerprint of the embedded public key"
-  (with-slots (public-key) key
-    (fingerprint :md5 public-key)))
-
-(defmethod fingerprint ((hash-spec (eql :sha1)) (key base-private-key) &key)
-  "Computes the SHA-1 fingerprint of the embedded public key"
-  (with-slots (public-key) key
-    (fingerprint :sha1 public-key)))
-
-(defmethod fingerprint ((hash-spec (eql :sha256)) (key base-private-key) &key)
-  "Computes the SHA-256 fingerprint of the embedded public key"
-  (with-slots (public-key) key
-    (fingerprint :sha256 public-key)))
-
-(defun extract-private-key (stream)
-  "Extracts the private key contents from the given stream"
-  (with-output-to-string (s)
-    ;; First line should be the beginning marker
-    (unless (string= +private-key-mark-begin+
-                     (read-line stream))
-      (error 'invalid-key-error
-             :description "Invalid private key format"))
-    ;; Read until the end marker
-    (loop for line = (read-line stream nil nil)
-          until (string= line +private-key-mark-end+)
-          do
-             (write-string line s))
-    s))
-
-(defun extract-private-key-from-file (path)
-  "Extracts the private key contents from the given path"
-  (with-open-file (in path)
-    (extract-private-key in)))
-
-(defun private-key-padding-is-correct-p (stream)
-  "Predicate for deterministic check of padding after private key"
-  (loop for byte = (read-byte stream nil :eof)
-        for i from 1
-        until (equal byte :eof) do
-          (unless (= byte i)
-            (return-from private-key-padding-is-correct-p nil)))
-  t)
-
 ;; TODO: Add support for encrypted keys
-(defun parse-private-key (text)
-  "Parses an OpenSSH private key from the given plain-text string"
-  (let* ((s (make-string-input-stream text))
-         (extracted (extract-private-key s))
-         (decoded (binascii:decode-base64 extracted))
-         (stream (rfc4251:make-binary-input-stream decoded))
-         cipher
+;; TODO: Return total number of bytes read from the stream
+(defmethod rfc4251:decode ((type (eql :private-key)) stream &key)
+  "Decodes an OpenSSH private key from the given stream"
+  (let* (cipher
          kdf-name
          kdf-options
          pub-key-buffer
@@ -211,6 +164,60 @@
        (error 'invalid-key-error
               :description "Invalid or unknown private key")))))
 
+(defmethod fingerprint ((hash-spec (eql :md5)) (key base-private-key) &key)
+  "Computes the MD5 fingerprint of the embedded public key"
+  (with-slots (public-key) key
+    (fingerprint :md5 public-key)))
+
+(defmethod fingerprint ((hash-spec (eql :sha1)) (key base-private-key) &key)
+  "Computes the SHA-1 fingerprint of the embedded public key"
+  (with-slots (public-key) key
+    (fingerprint :sha1 public-key)))
+
+(defmethod fingerprint ((hash-spec (eql :sha256)) (key base-private-key) &key)
+  "Computes the SHA-256 fingerprint of the embedded public key"
+  (with-slots (public-key) key
+    (fingerprint :sha256 public-key)))
+
+(defun extract-private-key (stream)
+  "Extracts the private key contents from the given stream"
+  (with-output-to-string (s)
+    ;; First line should be the beginning marker
+    (unless (string= +private-key-mark-begin+
+                     (read-line stream))
+      (error 'invalid-key-error
+             :description "Invalid private key format"))
+    ;; Read until the end marker
+    (loop for line = (read-line stream nil nil)
+          until (string= line +private-key-mark-end+)
+          do
+             (write-string line s))
+    s))
+
+(defun extract-private-key-from-file (path)
+  "Extracts the private key contents from the given path"
+  (with-open-file (in path)
+    (extract-private-key in)))
+
+(defun private-key-padding-is-correct-p (stream)
+  "Predicate for deterministic check of padding after private key"
+  (loop for byte = (read-byte stream nil :eof)
+        for i from 1
+        until (equal byte :eof) do
+          (unless (= byte i)
+            (return-from private-key-padding-is-correct-p nil)))
+  t)
+
+;; TODO: Add support for encrypted keys
+(defun parse-private-key (text)
+  "Parses an OpenSSH private key from the given plain-text string"
+  (let* ((s (make-string-input-stream text))
+         (extracted (extract-private-key s))
+         (decoded (binascii:decode-base64 extracted))
+         (stream (rfc4251:make-binary-input-stream decoded)))
+    (rfc4251:decode :private-key stream)))
+
+;; TODO: Add support for encrypted keys
 (defun parse-private-key-from-file (path)
   "Parses an OpenSSH private key from the given path"
   (parse-private-key (alexandria:read-file-into-string path)))
