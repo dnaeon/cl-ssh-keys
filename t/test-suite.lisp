@@ -138,4 +138,7 @@
   (ok (signals (ssh-keys:parse-public-key-from-file (get-test-key-path #P"id_ed25519_key_type_mismatch")))
       "Signals on mismatched key types")
   (ok (signals (ssh-keys:parse-public-key-from-file (get-test-key-path #P"id_rsa_missing_key_type")))
-      "Signals on missing key type"))
+      "Signals on missing key type")
+  (ok (signals (ssh-keys:parse-private-key-from-file (get-test-key-path #P"id_rsa_invalid_padding")))
+      "Signals on invalid padding"))
+
