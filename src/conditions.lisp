@@ -33,7 +33,7 @@
 
 (define-condition invalid-key-error (base-error)
   ()
-  (:documentation "Signaled when a public key file is detected as invalid"))
+  (:documentation "Signaled when a key is detected as invalid"))
 
 (define-condition key-type-mismatch-error (base-error)
   ((expected
@@ -42,7 +42,7 @@
    (found
     :initarg :found
     :reader error-found-key-type))
-  (:documentation "Signaled when there is a mismatch between the public key type and the encoded key type"))
+  (:documentation "Signaled when there is a mismatch between the known key type and the encoded key type"))
 
 (define-condition unsupported-key-error (base-error)
   ()

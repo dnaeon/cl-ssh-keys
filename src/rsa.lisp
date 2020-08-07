@@ -144,3 +144,32 @@
   "Returns the number of bits of the embedded public key"
   (with-slots (public-key) key
     (integer-length (ironclad:rsa-key-modulus public-key))))
+
+;; TODO: Add support for encrypted private keys
+(defmethod generate-key-pair ((kind (eql :rsa)) &key (num-bits 3072) comment)
+  "Generates a new pair of RSA public and private keys"
+  (when (< num-bits 1024)
+    (error 'unsupported-key-error :description "Minimum key length for RSA keys is 1024"))
+  (let* ((key-type (get-key-type :ssh-rsa :by :id))
+         (checksum-int (ironclad:random-bits 32))
+         (priv-pub-pair (multiple-value-list (ironclad:generate-key-pair :rsa :num-bits num-bits)))
+         (ironclad-priv-key (first priv-pub-pair))
+         (ironclad-pub-key (second priv-pub-pair))
+         (pub-key (make-instance 'rsa-public-key
+                                 :e (ironclad:rsa-key-exponent ironclad-pub-key)
+                                 :n (ironclad:rsa-key-modulus ironclad-pub-key)
+                                 :kind key-type
+                                 :comment comment))
+         (priv-key (make-instance 'rsa-private-key
+                                  :public-key pub-key
+                                  :cipher-name "none"
+                                  :kdf-name "none"
+                                  :kdf-options #()
+                                  :checksum-int checksum-int
+                                  :kind key-type
+                                  :comment comment
+                                  :d (ironclad:rsa-key-exponent ironclad-priv-key)
+                                  :n (ironclad:rsa-key-modulus ironclad-pub-key)
+                                  :p (ironclad:rsa-key-prime-p ironclad-priv-key)
+                                  :q (ironclad:rsa-key-prime-q ironclad-priv-key))))
+    (values priv-key pub-key)))
