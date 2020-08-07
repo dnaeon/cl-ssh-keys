@@ -31,3 +31,6 @@
 
 (defgeneric write-key (key &optional stream)
   (:documentation "Writes the key to the given stream in its text representation"))
+
+(defgeneric generate-key-pair (kind &key)
+  (:documentation "Generates a new pair of public and private keys"))

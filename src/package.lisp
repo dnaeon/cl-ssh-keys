@@ -49,6 +49,7 @@
    :fingerprint
    :key-bits
    :write-key
+   :generate-key-pair
 
    ;; key-types
    :*key-types*
