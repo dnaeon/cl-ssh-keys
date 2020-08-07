@@ -123,6 +123,23 @@
                    :p p
                    :q q)))
 
+(defmethod rfc4251:encode ((type (eql :rsa-private-key)) (key rsa-private-key) stream &key)
+  "Encodes the RSA private key into the given binary stream"
+  (let* ((public-key (embedded-public-key key))
+         (n (ironclad:rsa-key-modulus public-key))
+         (e (ironclad:rsa-key-exponent public-key))
+         (d (ironclad:rsa-key-exponent key))
+         (p (ironclad:rsa-key-prime-p key))
+         (q (ironclad:rsa-key-prime-q key))
+         (iqmp (ironclad::modular-inverse-with-blinding q p)))
+    (+
+     (rfc4251:encode :mpint n stream)
+     (rfc4251:encode :mpint e stream)
+     (rfc4251:encode :mpint d stream)
+     (rfc4251:encode :mpint iqmp stream)
+     (rfc4251:encode :mpint p stream)
+     (rfc4251:encode :mpint q stream))))
+
 (defmethod key-bits ((key rsa-private-key))
   "Returns the number of bits of the embedded public key"
   (with-slots (public-key) key
