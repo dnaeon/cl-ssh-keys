@@ -75,7 +75,6 @@
   (let* (cipher
          kdf-name
          kdf-options
-         pub-key-buffer
          pub-key-stream
          public-key
          check-int-1
@@ -83,16 +82,19 @@
          encrypted-buffer
          encrypted-stream
          args
-         priv-key)
+         priv-key
+         (total 0))
     ;; Parse AUTH_MAGIC header
-    (unless (string= (rfc4251:decode :c-string stream)
-                     +private-key-auth-magic+)
-      (error 'invalid-key-error
-             :description "Expected AUTH_MAGIC header not found"))
+    (multiple-value-bind (auth-magic size) (rfc4251:decode :c-string stream)
+      (incf total size)
+      (unless (string= auth-magic +private-key-auth-magic+)
+        (error 'invalid-key-error
+               :description "Expected AUTH_MAGIC header not found")))
 
     ;; Parse cipher name
     ;; TODO: Add support for encrypted keys
-    (let ((cipher-name (rfc4251:decode :string stream)))
+    (multiple-value-bind (cipher-name size) (rfc4251:decode :string stream)
+      (incf total size)
       (setf cipher (get-cipher-by-name cipher-name))
       (unless cipher
         (error 'invalid-key-error
@@ -103,7 +105,8 @@
                :description "Encrypted keys are not supported yet")))
 
     ;; Parse KDF name
-    (let ((value (rfc4251:decode :string stream)))
+    (multiple-value-bind (value size) (rfc4251:decode :string stream)
+      (incf total size)
       (setf kdf-name value)
       ;; KDF name can be either "none" or "bcrypt"
       (unless (or (string= kdf-name "none") (string= kdf-name "bcrypt"))
@@ -112,28 +115,35 @@
 
     ;; Parse kdf options
     ;; TODO: Add support for encrypted keys
-    (setf kdf-options (rfc4251:decode :buffer stream))
+    (multiple-value-bind (value size) (rfc4251:decode :buffer stream)
+      (incf total size)
+      (setf kdf-options value))
 
     ;; Parse number of keys, which are embedded in the private key.
     ;; Only 1 key is expected here.
-    (unless (= 1 (rfc4251:decode :uint32 stream))
-      (error 'invalid-key-error
-             :description "Expected only one key embedded in the blob"))
+    (multiple-value-bind (value size) (rfc4251:decode :uint32 stream)
+      (incf total size)
+      (unless (= value 1)
+        (error 'invalid-key-error
+               :description "Expected only one key embedded in the blob")))
 
     ;; Parse public key section.
     ;; We need to decode the buffer first and then decode the embedded key.
-    (setf pub-key-buffer (rfc4251:decode :buffer stream))
-    (setf pub-key-stream (rfc4251:make-binary-input-stream pub-key-buffer))
-    (setf public-key (rfc4251:decode :public-key pub-key-stream))
+    (multiple-value-bind (buffer size) (rfc4251:decode :buffer stream)
+      (incf total size)
+      (setf pub-key-stream (rfc4251:make-binary-input-stream buffer))
+      (setf public-key (rfc4251:decode :public-key pub-key-stream)))
 
     ;; Read encrypted section.
     ;; TODO: Add support for encrypted keys
-    (setf encrypted-buffer (rfc4251:decode :buffer stream))
-    (setf encrypted-stream (rfc4251:make-binary-input-stream encrypted-buffer))
-    ;; Check size of encrypted data against the cipher blocksize that was used
-    (unless (zerop (mod (length encrypted-buffer) (getf cipher :blocksize)))
-      (error 'invalid-key-error
-             :description "Invalid private key format"))
+    (multiple-value-bind (buffer size) (rfc4251:decode :buffer stream)
+      (incf total size)
+      (setf encrypted-buffer buffer)
+      (setf encrypted-stream (rfc4251:make-binary-input-stream encrypted-buffer))
+      ;; Check size of encrypted data against the cipher blocksize that was used
+      (unless (zerop (mod (length encrypted-buffer) (getf cipher :blocksize)))
+        (error 'invalid-key-error
+               :description "Invalid private key format")))
 
     ;; Decode checksum integers.
     ;; If they don't match this means that the private key was
@@ -174,7 +184,7 @@
       (error 'invalid-key-error
              :description "Invalid private key padding"))
 
-    priv-key))
+    (values priv-key total)))
 
 ;; TODO: Add support for encrypted keys
 (defmethod rfc4251:encode ((type (eql :private-key)) (key base-private-key) stream &key)
