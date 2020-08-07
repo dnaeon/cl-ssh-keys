@@ -34,14 +34,25 @@
 then we dispatch decoding to the respective implementation of the given
 KEY-TYPE-NAME (e.g. ssh-rsa). Otherwise the KEY-TYPE-NAME is first decoded
 from the binary stream and then dispatched to the respective implementation."
-  (let* ((key-type-name (or key-type-name (rfc4251:decode :string stream)))
-         (key-type (get-key-type key-type-name :by :name))
-         (key-id (getf key-type :id)))
-    (case key-id
-      (:ssh-rsa (rfc4251:decode :rsa-public-key stream :kind key-type :comment comment))
-      (t
-       (error 'invalid-key-error
-              :description (format nil "Unknown key type ~a" key-type-name))))))
+  (let* ((total 0) ;; Total number of bytes decoded
+         key-type
+         key-id)
+    ;; Decode key type, if not specified explicitely
+    (unless key-type-name
+      (multiple-value-bind (value size) (rfc4251:decode :string stream)
+        (incf total size)
+        (setf key-type-name value)))
+
+    (setf key-type (get-key-type key-type-name :by :name))
+    (setf key-id (getf key-type :id))
+
+    (multiple-value-bind (pub-key size)
+        (case key-id
+          (:ssh-rsa (rfc4251:decode :rsa-public-key stream :kind key-type :comment comment))
+          (t
+           (error 'invalid-key-error
+                  :description (format nil "Unknown key type ~a" key-type-name))))
+      (values pub-key (+ total size)))))
 
 (defmethod rfc4251:encode ((type (eql :public-key)) (key base-public-key) stream &key (encode-key-type-p t))
   "Encodes the public key into the binary stream according to RFC 4253, section 6.6.
