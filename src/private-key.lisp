@@ -68,7 +68,7 @@
     :documentation "Checksum integer for private keys"))
   (:documentation "Base class for representing an OpenSSH private key"))
 
-(defmethod fingerprintf ((hash-spec (eql :md5)) (key base-private-key) &key)
+(defmethod fingerprint ((hash-spec (eql :md5)) (key base-private-key) &key)
   "Computes the MD5 fingerprint of the embedded public key"
   (with-slots (public-key) key
     (fingerprint :md5 public-key)))
