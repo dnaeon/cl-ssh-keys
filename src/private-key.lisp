@@ -210,3 +210,7 @@
       (t
        (error 'invalid-key-error
               :description "Invalid or unknown private key")))))
+
+(defun parse-private-key-from-file (path)
+  "Parses an OpenSSH private key from the given path"
+  (parse-private-key (alexandria:read-file-into-string path)))
