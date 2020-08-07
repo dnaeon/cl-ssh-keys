@@ -95,6 +95,20 @@ type name, when being embedded within a certificate."
     (declare (ignore size))
     (subseq encoded 0 trim-position)))
 
+(defmethod write-key ((key base-public-key) &optional (stream *standard-output*))
+  "Writes the public key in its text representation"
+  (let* ((s (rfc4251:make-binary-output-stream))
+         (size (rfc4251:encode :public-key key s))
+         (data (rfc4251:binary-output-stream-data s))
+         (encoded (binascii:encode-base64 data))
+         (key-type-name (getf (key-kind key) :plain-name))
+         (comment (key-comment key)))
+    (declare (ignore size))
+    (format stream "~a ~a" key-type-name encoded)
+    (when comment
+      (format stream " ~a" comment))
+    (format stream "~&")))
+
 (defun parse-public-key (text)
   "Parses an OpenSSH public key from the given plain-text string"
   (let* ((parts (uiop:split-string text :separator '(#\Space)))
