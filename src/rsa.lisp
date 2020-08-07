@@ -131,3 +131,8 @@
                    :n n
                    :p p
                    :q q)))
+
+(defmethod key-bits ((key rsa-private-key))
+  "Returns the number of bits of the embedded public key"
+  (with-slots (public-key) key
+    (integer-length (ironclad:rsa-key-modulus public-key))))
