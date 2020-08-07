@@ -191,6 +191,21 @@
   (with-slots (public-key) key
     (fingerprint :sha256 public-key)))
 
+(defmethod write-key ((key base-private-key) &optional (stream *standard-output*))
+  "Writes the private key in its text representation"
+  (let* ((s (rfc4251:make-binary-output-stream))
+         (size (rfc4251:encode :private-key key s))
+         (data (rfc4251:binary-output-stream-data s))
+         (encoded (binascii:encode-base64 data)))
+    (declare (ignore size))
+    (format stream "~a~&" +private-key-mark-begin+)
+    (loop for char across encoded
+          for i from 1 do
+            (when (zerop (mod (1- i) 70))
+              (format stream "~&"))
+            (write-char char stream))
+    (format stream "~&~a~&" +private-key-mark-end+)))
+
 (defun extract-private-key (stream)
   "Extracts the private key contents from the given stream"
   (with-output-to-string (s)
