@@ -111,3 +111,102 @@
           (unless (= byte i)
             (return-from private-key-padding-is-correct-p nil)))
   t)
+
+;; TODO: Add support for encrypted keys
+(defun parse-private-key (text)
+  "Parses an OpenSSH private key from the given plain-text string"
+  (let* ((s (make-string-input-stream text))
+         (extracted (extract-private-key s))
+         (decoded (binascii:decode-base64 extracted))
+         (stream (rfc4251:make-binary-input-stream decoded))
+         cipher
+         kdf-name
+         kdf-options
+         pub-key-buffer
+         pub-key-stream
+         public-key
+         check-int-1
+         check-int-2
+         encrypted-buffer
+         encrypted-stream
+         args)
+    ;; Parse AUTH_MAGIC header
+    (unless (string= (rfc4251:decode :c-string stream)
+                     +private-key-auth-magic+)
+      (error 'invalid-key-error
+             :description "Expected AUTH_MAGIC header not found"))
+
+    ;; Parse cipher name
+    ;; TODO: Add support for encrypted keys
+    (let ((cipher-name (rfc4251:decode :string stream)))
+      (setf cipher (get-cipher-by-name cipher-name))
+      (unless cipher
+        (error 'invalid-key-error
+               :description (format nil "Unknown cipher name found ~a" cipher-name)))
+      ;; TODO: Remove this check once we can decrypt keys
+      (unless (string= cipher-name "none")
+        (error 'unsupported-key-error
+               :description "Encrypted keys are not supported yet")))
+
+    ;; Parse KDF name
+    (let ((value (rfc4251:decode :string stream)))
+      (setf kdf-name value)
+      ;; KDF name can be either "none" or "bcrypt"
+      (unless (or (string= kdf-name "none") (string= kdf-name "bcrypt"))
+        (error 'invalid-key-error
+               :description (format nil "Unknown KDF function name ~a" value))))
+
+    ;; Parse kdf options
+    ;; TODO: Add support for encrypted keys
+    (setf kdf-options (rfc4251:decode :buffer stream))
+
+    ;; Parse number of keys, which are embedded in the private key.
+    ;; Only 1 key is expected here.
+    (unless (= 1 (rfc4251:decode :uint32 stream))
+      (error 'invalid-key-error
+             :description "Expected only one key embedded in the blob"))
+
+    ;; Parse public key section.
+    ;; We need to decode the buffer first and then decode the embedded key.
+    (setf pub-key-buffer (rfc4251:decode :buffer stream))
+    (setf pub-key-stream (rfc4251:make-binary-input-stream pub-key-buffer))
+    (setf public-key (rfc4251:decode :public-key pub-key-stream))
+
+    ;; Read encrypted section.
+    ;; TODO: Add support for encrypted keys
+    (setf encrypted-buffer (rfc4251:decode :buffer stream))
+    (setf encrypted-stream (rfc4251:make-binary-input-stream encrypted-buffer))
+    ;; Check size of encrypted data against the cipher blocksize that was used
+    (unless (zerop (mod (length encrypted-buffer) (getf cipher :blocksize)))
+      (error 'invalid-key-error
+             :description "Invalid private key format"))
+
+    ;; Decode checksum integers.
+    ;; If they don't match this means that the private key was
+    ;; not successfully decrypted.
+    (setf check-int-1 (rfc4251:decode :uint32 encrypted-stream))
+    (setf check-int-2 (rfc4251:decode :uint32 encrypted-stream))
+    (unless (= check-int-1 check-int-2)
+      (error 'invalid-key-error
+             :description "Checksum integers mismatch"))
+
+    ;; Parse key type name. Must match with the one of the public key.
+    (unless (string= (rfc4251:decode :string encrypted-stream)
+                     (getf (key-kind public-key) :plain-name))
+      (error 'invalid-key-error
+             :description "Private and public key types mismatch"))
+
+    ;; Dispatch to the respective private key implementation for
+    ;; decoding the rest of the encrypted stream
+    (setf args (list :kind (key-kind public-key)
+                     :public-key public-key
+                     :cipher-name (getf cipher :name)
+                     :kdf-name kdf-name
+                     :kdf-options kdf-options
+                     :checksum-int check-int-1))
+
+    (case (getf (key-kind public-key) :id)
+      (:ssh-rsa (apply #'rfc4251:decode :rsa-private-key encrypted-stream args))
+      (t
+       (error 'invalid-key-error
+              :description "Invalid or unknown private key")))))

@@ -43,3 +43,7 @@
     :initarg :found
     :reader error-found-key-type))
   (:documentation "Signaled when there is a mismatch between the public key type and the encoded key type"))
+
+(define-condition unsupported-key-error (base-error)
+  ()
+  (:documentation "Signaled when attempting to perform an operation on keys that are not supported"))

@@ -61,3 +61,73 @@
   "Returns the number of bits for the RSA public key"
   (with-accessors ((n ironclad:rsa-key-modulus)) key
     (integer-length n)))
+
+(defclass rsa-private-key (base-private-key ironclad:rsa-private-key)
+  ()
+  (:documentation "Represents an OpenSSH RSA private key"))
+
+(defmethod rfc4251:decode ((type (eql :rsa-private-key)) stream &key kind public-key
+                                                                  cipher-name kdf-name
+                                                                  kdf-options checksum-int)
+  "Decodes an RSA private key from the given stream"
+  (let* (n         ;; RSA modulus
+         e         ;; RSA public exponent
+         d         ;; RSA private exponent
+         iqmp      ;; RSA Inverse of Q Mod P
+         p         ;; RSA prime number 1
+         q         ;; RSA prime number 2
+         comment)  ;; Key comment
+    ;; Decode RSA modulus.
+    ;; The modulus must match with the one from the
+    ;; already decoded embedded public key.
+    (setf n (rfc4251:decode :mpint stream))
+    (unless (= n (ironclad:rsa-key-modulus public-key))
+      (error 'invalid-key-error
+             :description "Invalid RSA modulus found in encrypted section"))
+
+    ;; RSA public exponent, also part of the encrypted section.
+    ;; Must match with the one from the already decoded pubic key.
+    (setf e (rfc4251:decode :mpint stream))
+    (unless (= e (ironclad:rsa-key-exponent public-key))
+      (error 'invalid-key-error
+             :description "Invalid RSA public exponent found in encrypted section"))
+
+    ;; RSA private exponent
+    (setf d (rfc4251:decode :mpint stream))
+
+    ;; Inverse of Q Mod P, a.k.a iqmp
+    (setf iqmp (rfc4251:decode :mpint stream))
+
+    ;; RSA prime number 1
+    (setf p (rfc4251:decode :mpint stream))
+
+    ;; RSA prime number 2
+    (setf q (rfc4251:decode :mpint stream))
+
+    ;; Verify the CRT coefficient
+    (unless (= iqmp (ironclad::modular-inverse-with-blinding q p))
+      (error 'invalid-key-error
+             :description "Invalid CRT coefficient found in private key blob"))
+
+    ;; Decode comment
+    (setf comment (rfc4251:decode :string stream))
+
+    ;; Perform a deterministic pad check
+    (unless (private-key-padding-is-correct-p stream)
+      (error 'invalid-key-error
+             :description "Invalid private key padding"))
+
+    ;; We are good, if we've reached so far.
+    (make-instance 'rsa-private-key
+                   :kind kind
+                   :comment comment
+                   :public-key public-key
+                   :cipher-name cipher-name
+                   :kdf-name kdf-name
+                   :kdf-options kdf-options
+                   :public-key public-key
+                   :checksum-int checksum-int
+                   :d d
+                   :n n
+                   :p p
+                   :q q)))

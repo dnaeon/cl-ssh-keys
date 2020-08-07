@@ -43,6 +43,7 @@
    ;; conditions
    :invalid-public-key-error
    :key-type-mismatch-error
+   :unsupported-key-error
 
    ;; generics
    :fingerprint
@@ -74,6 +75,8 @@
    :extract-private-key
    :extract-private-key-from-file
    :private-key-padding-is-correct-p
+   :parse-private-key
+   :parse-private-key-from-file
 
    ;; rsa
    :rsa-public-key
