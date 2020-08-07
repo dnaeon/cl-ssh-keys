@@ -176,6 +176,63 @@
 
     priv-key))
 
+;; TODO: Add support for encrypted keys
+(defmethod rfc4251:encode ((type (eql :private-key)) (key base-private-key) stream &key)
+  "Encodes the private key in OpenSSH private key format"
+  (let* ((tmp-stream (rfc4251:make-binary-output-stream)) ;; Temporary buffer to which we write
+         (pub-key-stream (rfc4251:make-binary-output-stream))
+         (encrypted-stream (rfc4251:make-binary-output-stream))
+         (key-type (key-kind key))
+         (key-type-plain (getf key-type :plain-name))
+         (key-id (getf key-type :id))
+         (cipher (get-cipher-by-name (key-cipher-name key)))
+         (cipher-blocksize (getf cipher :blocksize)))
+    (unless cipher
+      (error 'invalid-key-error
+             :description "Invalid cipher name"))
+
+    (rfc4251:encode :c-string +private-key-auth-magic+ tmp-stream) ;; AUTH_MAGIC header
+    (rfc4251:encode :string (key-cipher-name key) tmp-stream)      ;; Cipher name
+    (rfc4251:encode :string (key-kdf-name key) tmp-stream)         ;; KDF name
+    (rfc4251:encode :buffer (key-kdf-options key) tmp-stream)      ;; KDF options
+    (rfc4251:encode :uint32 #x01 tmp-stream)                       ;; Number of keys
+
+    ;; Public key buffer
+    (rfc4251:encode :public-key
+                    (embedded-public-key key)
+                    pub-key-stream)
+    (rfc4251:encode :buffer
+                    (rfc4251:binary-output-stream-data pub-key-stream)
+                    tmp-stream)
+
+    ;; Encrypted buffer
+    (rfc4251:encode :uint32 (key-checksum-int key) encrypted-stream) ;; checkint 1
+    (rfc4251:encode :uint32 (key-checksum-int key) encrypted-stream) ;; checkint 2
+    (rfc4251:encode :string key-type-plain encrypted-stream)         ;; key type name
+
+    ;; Dispatch further encoding to the respective implementation
+    (case key-id
+      (:ssh-rsa (rfc4251:encode :rsa-private-key key encrypted-stream))
+      (t
+       (error 'unsupported-key-error
+              :description (format nil "Unsupported private key type ~a" key-type-plain))))
+
+    ;; Comment
+    (rfc4251:encode :string (or (key-comment key) "") encrypted-stream)
+
+    ;; Padding
+    (loop for size = (length (rfc4251:binary-output-stream-data encrypted-stream))
+          for i from 1
+          until (zerop (mod size cipher-blocksize))
+          do
+             (rfc4251:encode :byte i encrypted-stream))
+
+    ;; Write out the encrypted buffer
+    (rfc4251:encode :buffer (rfc4251:binary-output-stream-data encrypted-stream) tmp-stream)
+
+    ;; Flush out the temp buffer
+    (rfc4251:encode :raw-bytes (rfc4251:binary-output-stream-data tmp-stream) stream)))
+
 (defmethod fingerprint ((hash-spec (eql :md5)) (key base-private-key) &key)
   "Computes the MD5 fingerprint of the embedded public key"
   (with-slots (public-key) key
