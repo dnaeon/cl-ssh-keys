@@ -95,6 +95,6 @@
    (comment
     :initarg :comment
     :initform nil
-    :reader key-comment
+    :accessor key-comment
     :documentation "Comment associated with the key"))
   (:documentation "Base class for representing an OpenSSH key"))

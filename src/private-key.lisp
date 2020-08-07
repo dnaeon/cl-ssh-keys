@@ -82,7 +82,8 @@
          check-int-2
          encrypted-buffer
          encrypted-stream
-         args)
+         args
+         priv-key)
     ;; Parse AUTH_MAGIC header
     (unless (string= (rfc4251:decode :c-string stream)
                      +private-key-auth-magic+)
@@ -159,10 +160,21 @@
                      :checksum-int check-int-1))
 
     (case (getf (key-kind public-key) :id)
-      (:ssh-rsa (apply #'rfc4251:decode :rsa-private-key encrypted-stream args))
+      (:ssh-rsa
+       (setf priv-key (apply #'rfc4251:decode :rsa-private-key encrypted-stream args)))
       (t
        (error 'invalid-key-error
-              :description "Invalid or unknown private key")))))
+              :description "Invalid or unknown private key")))
+
+    ;; Decode comment
+    (setf (key-comment priv-key) (rfc4251:decode :string encrypted-stream))
+
+    ;; Perform a deterministic pad check
+    (unless (private-key-padding-is-correct-p encrypted-stream)
+      (error 'invalid-key-error
+             :description "Invalid private key padding"))
+
+    priv-key))
 
 (defmethod fingerprint ((hash-spec (eql :md5)) (key base-private-key) &key)
   "Computes the MD5 fingerprint of the embedded public key"

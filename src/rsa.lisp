@@ -109,14 +109,6 @@
       (error 'invalid-key-error
              :description "Invalid CRT coefficient found in private key blob"))
 
-    ;; Decode comment
-    (setf comment (rfc4251:decode :string stream))
-
-    ;; Perform a deterministic pad check
-    (unless (private-key-padding-is-correct-p stream)
-      (error 'invalid-key-error
-             :description "Invalid private key padding"))
-
     ;; We are good, if we've reached so far.
     (make-instance 'rsa-private-key
                    :kind kind
@@ -125,7 +117,6 @@
                    :cipher-name cipher-name
                    :kdf-name kdf-name
                    :kdf-options kdf-options
-                   :public-key public-key
                    :checksum-int checksum-int
                    :d d
                    :n n
