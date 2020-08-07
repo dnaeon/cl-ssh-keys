@@ -76,8 +76,8 @@
           "RSA 1024-bit key kind")
       (ok (= (ssh-keys:key-bits key) 1024)
           "RSA 1024-bit key number of bits")
-      (ok (string= (ssh-keys:key-comment key) "john.doe@localhost"
-          "RSA 1024-bit key comment"))
+      (ok (string= (ssh-keys:key-comment key) "john.doe@localhost")
+          "RSA 1024-bit key comment")
       (ok (string= (ssh-keys:key-cipher-name key) "none")
           "RSA 3072-bit private key cipher name")
       (ok (string= (ssh-keys:key-kdf-name key) "none")
