@@ -28,3 +28,6 @@
 
 (defgeneric key-bits (key)
   (:documentation "Returns the number of bits for the key"))
+
+(defgeneric write-key (key &optional stream)
+  (:documentation "Writes the key to the given stream in its text representation"))
