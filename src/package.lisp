@@ -52,6 +52,10 @@
    :*key-types*
    :get-key-type
 
+   ;; ciphers
+   :*ciphers*
+   :get-cipher-by-name
+
    ;; public-key
    :base-public-key
    :parse-public-key
