@@ -309,7 +309,9 @@
          (extracted (extract-private-key s))
          (decoded (binascii:decode-base64 extracted))
          (stream (rfc4251:make-binary-input-stream decoded)))
-    (rfc4251:decode :private-key stream)))
+    (multiple-value-bind (key size) (rfc4251:decode :private-key stream)
+      (declare (ignore size))
+      key)))
 
 ;; TODO: Add support for encrypted keys
 (defun parse-private-key-from-file (path)

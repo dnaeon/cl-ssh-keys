@@ -142,7 +142,12 @@ type name, when being embedded within a certificate."
                :description "Key types mismatch"
                :expected key-type-name
                :found encoded-key-type-name))
-      (rfc4251:decode :public-key stream :key-type-name key-type-name :comment comment))))
+      (multiple-value-bind (key size) (rfc4251:decode :public-key
+                                                      stream
+                                                      :key-type-name key-type-name
+                                                      :comment comment)
+        (declare (ignore size))
+        key))))
 
 (defun parse-public-key-from-file (path)
   "Parses an OpenSSH public key from the given path"
