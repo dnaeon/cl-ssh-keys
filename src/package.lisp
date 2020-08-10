@@ -81,6 +81,8 @@
    :private-key-padding-is-correct-p
    :parse-private-key
    :parse-private-key-file
+   :with-private-key
+   :with-private-key-file
 
    ;; rsa
    :rsa-public-key

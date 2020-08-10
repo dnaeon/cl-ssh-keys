@@ -198,7 +198,8 @@
     (ok (expands '(ssh-keys:with-private-key-file (key #P"id_rsa")
                    (ssh-keys:fingerprint :sha256 key))
                  '(let ((key (ssh-keys:parse-private-key-file #P"id_rsa")))
-                   (ssh-keys:fingerprint :sha256 key))))))
+                   (ssh-keys:fingerprint :sha256 key)))
+        "Test WITH-PRIVATE-KEY-FILE macro expanding")))
 
 (deftest invalid-keys
   (ok (signals (ssh-keys:parse-public-key-file (get-test-key-path #P"id_rsa_unknown_key_type.pub")))
@@ -211,4 +212,3 @@
       "Signals on missing key type")
   (ok (signals (ssh-keys:parse-private-key-file (get-test-key-path #P"id_rsa_invalid_padding")))
       "Signals on invalid padding"))
-

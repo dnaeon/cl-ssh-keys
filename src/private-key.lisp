@@ -278,6 +278,18 @@
             (write-char char stream))
     (format stream "~&~a~&" +private-key-mark-end+)))
 
+(defmacro with-private-key ((var text) &body body)
+  "Parses a private key from the given TEXT and evaluates the
+BODY with VAR bound to the decoded private key"
+  `(let ((,var (parse-private-key ,text)))
+     ,@body))
+
+(defmacro with-private-key-file ((var path) &body body)
+  "Parses a private key from the given PATH and evaluates the
+BODY with VAR bound to the decoded private key"
+  `(let ((,var (parse-private-key-file ,path)))
+     ,@body))
+
 (defun extract-private-key (stream)
   "Extracts the private key contents from the given stream"
   (with-output-to-string (s)

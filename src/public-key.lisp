@@ -121,13 +121,13 @@ type name, when being embedded within a certificate."
     (format stream "~&")))
 
 (defmacro with-public-key ((var text) &body body)
-  "Parses the public key from the given TEXT and evaluates the
+  "Parses a public key from the given TEXT and evaluates the
 BODY with VAR bound to the decoded public key"
   `(let ((,var (parse-public-key ,text)))
      ,@body))
 
 (defmacro with-public-key-file ((var path) &body body)
-  "Parses the public key from the given PATH and evaluates the
+  "Parses a public key from the given PATH and evaluates the
 BODY with VAR bound to the decoded public key"
   `(let ((,var (parse-public-key-file ,path)))
      ,@body))
