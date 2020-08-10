@@ -187,7 +187,18 @@
                    (ssh-keys:fingerprint :sha256 key))
                  '(let ((key (ssh-keys:parse-public-key-file #P"id_rsa.pub")))
                    (ssh-keys:fingerprint :sha256 key)))
-        "Test WITH-PUBLIC-KEY-FILE macro")))
+        "Test WITH-PUBLIC-KEY-FILE macro"))
+  (testing "with-private-key macro"
+    (ok (expands '(ssh-keys:with-private-key (key "-----BEGIN OPENSSH PRIVATE KEY----- ...")
+                   (ssh-keys:fingerprint :sha256 key))
+                 '(let ((key (ssh-keys:parse-private-key "-----BEGIN OPENSSH PRIVATE KEY----- ...")))
+                   (ssh-keys:fingerprint :sha256 key)))
+        "Test WITH-PRIVATE-KEY macro expanding"))
+  (testing "with-private-key-file macro"
+    (ok (expands '(ssh-keys:with-private-key-file (key #P"id_rsa")
+                   (ssh-keys:fingerprint :sha256 key))
+                 '(let ((key (ssh-keys:parse-private-key-file #P"id_rsa")))
+                   (ssh-keys:fingerprint :sha256 key))))))
 
 (deftest invalid-keys
   (ok (signals (ssh-keys:parse-public-key-file (get-test-key-path #P"id_rsa_unknown_key_type.pub")))
