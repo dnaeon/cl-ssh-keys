@@ -40,7 +40,7 @@
   (merge-pathnames *test-keys-path* name))
 
 (deftest rsa-keys
-  (testing "RSA 1024-bit public key"
+  (testing "Parse RSA 1024-bit public key"
     (let ((key (ssh-keys:parse-public-key-from-file (get-test-key-path #P"id_rsa_1024.pub"))))
       (ok (string= (ssh-keys:fingerprint :md5 key)
                    "dd:e6:24:29:55:48:40:af:28:2c:68:f3:33:40:58:20")
@@ -59,7 +59,7 @@
       (ok (string= (ssh-keys:key-comment key) "john.doe@localhost")
           "RSA 1024-bit key comment")))
 
-  (testing "RSA 1024-bit private key"
+  (testing "Parse RSA 1024-bit private key"
     (let ((key (ssh-keys:parse-private-key-from-file (get-test-key-path #P"id_rsa_1024"))))
       ;; Fingerprints of private keys are computed against the embedded public key
       (ok (string= (ssh-keys:fingerprint :md5 key)
@@ -85,7 +85,7 @@
       (ok (equalp (ssh-keys:key-kdf-options key) #())
           "RSA 3072-bit private key KDF options")))
 
-  (testing "RSA 3072-bit public key"
+  (testing "Parse RSA 3072-bit public key"
     (let ((key (ssh-keys:parse-public-key-from-file (get-test-key-path #P"id_rsa_3072.pub"))))
       (ok (string= (ssh-keys:fingerprint :md5 key)
                    "04:02:4b:b2:43:39:a4:8e:89:47:49:6f:30:78:94:1e")
@@ -104,7 +104,7 @@
       (ok (string= (ssh-keys:key-comment key) "john.doe@localhost")
           "RSA 3072-bit key comment")))
 
-  (testing "RSA 3072-bit private key"
+  (testing "Parse RSA 3072-bit private key"
     (let ((key (ssh-keys:parse-private-key-from-file (get-test-key-path #P"id_rsa_3072"))))
       ;; Fingerprints of private keys are computed against the embedded public key
       (ok (string= (ssh-keys:fingerprint :md5 key)
@@ -128,7 +128,48 @@
       (ok (string= (ssh-keys:key-kdf-name key) "none")
           "RSA 3072-bit private key KDF name")
       (ok (equalp (ssh-keys:key-kdf-options key) #())
-          "RSA 3072-bit private key KDF options"))))
+          "RSA 3072-bit private key KDF options")))
+
+  (testing "Generate RSA private/public key pair"
+    (multiple-value-bind (priv-key pub-key) (ssh-keys:generate-key-pair :rsa :comment "my rsa key")
+      ;; Public key
+      (ok (string= (ssh-keys:key-comment pub-key) "my rsa key")
+          "Generated RSA public key comment")
+      (ok (= (ssh-keys:key-bits pub-key) 3072)
+          "Generated RSA public key number of bits")
+      (ok (equal (ssh-keys:key-kind pub-key)
+                 '(:name "ssh-rsa" :plain-name "ssh-rsa" :short-name "RSA" :id :ssh-rsa :is-cert nil))
+          "Generated RSA public key kind")
+      (ok (plusp (ssh-keys:rsa-key-exponent pub-key))
+          "Generated RSA pulic key exponent")
+      (ok (plusp (ssh-keys:rsa-key-modulus pub-key))
+          "Generated RSA public key modulus")
+
+      ;; Private key
+      (ok (string= (ssh-keys:key-comment priv-key) "my rsa key")
+          "Generated RSA private key comment")
+      (ok (= (ssh-keys:key-bits priv-key) 3072)
+          "Generated RSA private key number of bits")
+      (ok (equal (ssh-keys:key-kind priv-key)
+                 '(:name "ssh-rsa" :plain-name "ssh-rsa" :short-name "RSA" :id :ssh-rsa :is-cert nil))
+          "Generated RSA private key kind")
+      (ok (string= (ssh-keys:key-cipher-name priv-key) "none")
+          "Generated RSA private key cipher name")
+      (ok (string= (ssh-keys:key-kdf-name priv-key) "none")
+          "Generated RSA private key KDF name")
+      (ok (equalp (ssh-keys:key-kdf-options priv-key) #())
+          "Generated RSA private key KDF options")
+      (ok (equal (ssh-keys:embedded-public-key priv-key)
+                 pub-key)
+          "Generated RSA private key embedded public key")
+      (ok (plusp (ssh-keys:rsa-key-exponent priv-key))
+          "Generated RSA private key exponent")
+      (ok (plusp (ssh-keys:rsa-key-modulus priv-key))
+          "Generated RSA private key modulus")
+      (ok (plusp (ssh-keys:rsa-key-prime-p priv-key))
+          "Generated RSA private key first prime factor - p")
+      (ok (plusp (ssh-keys:rsa-key-prime-q priv-key))
+          "Generated RSA private key second prime factor - q"))))
 
 (deftest invalid-keys
   (ok (signals (ssh-keys:parse-public-key-from-file (get-test-key-path #P"id_rsa_unknown_key_type.pub")))
