@@ -175,6 +175,20 @@
     (ok (signals (ssh-keys:generate-key-pair :rsa :num-bits 512))
         "Generate RSA 512-bit keys -- signals on bit size less than 1024")))
 
+(deftest with-macros
+  (testing "with-public-key macro"
+    (ok (expands '(ssh-keys:with-public-key (key "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDi...")
+                   (ssh-keys:fingerprint :sha256 key))
+                 '(let ((key (ssh-keys:parse-public-key "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDi...")))
+                   (ssh-keys:fingerprint :sha256 key)))
+        "Test WITH-PUBLIC-KEY macro expanding"))
+  (testing "with-public-key-file macro"
+    (ok (expands '(ssh-keys:with-public-key-file (key #P"id_rsa.pub")
+                   (ssh-keys:fingerprint :sha256 key))
+                 '(let ((key (ssh-keys:parse-public-key-from-file #P"id_rsa.pub")))
+                   (ssh-keys:fingerprint :sha256 key)))
+        "Test WITH-PUBLIC-KEY-FILE macro")))
+
 (deftest invalid-keys
   (ok (signals (ssh-keys:parse-public-key-from-file (get-test-key-path #P"id_rsa_unknown_key_type.pub")))
       "Signals on unknown key type")
