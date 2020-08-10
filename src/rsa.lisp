@@ -75,8 +75,7 @@
          d         ;; RSA private exponent
          iqmp      ;; RSA Inverse of Q Mod P
          p         ;; RSA prime number 1
-         q         ;; RSA prime number 2
-         comment)  ;; Key comment
+         q)        ;; RSA prime number 2
     ;; Decode RSA modulus.
     ;; The modulus must match with the one from the
     ;; already decoded embedded public key.
@@ -112,7 +111,6 @@
     ;; We are good, if we've reached so far.
     (make-instance 'rsa-private-key
                    :kind kind
-                   :comment comment
                    :public-key public-key
                    :cipher-name cipher-name
                    :kdf-name kdf-name

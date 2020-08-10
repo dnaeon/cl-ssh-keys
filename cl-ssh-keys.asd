@@ -32,5 +32,6 @@
                (:module "keys"
                 :pathname #P"src/"
                 :depends-on ("core")
-                :components ((:file "rsa"))))
+                :components ((:file "rsa")
+                             (:file "dsa"))))
   :in-order-to ((test-op (test-op "cl-ssh-keys.test"))))

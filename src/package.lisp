@@ -32,7 +32,12 @@
    :rsa-key-exponent
    :rsa-key-modulus
    :rsa-key-prime-p
-   :rsa-key-prime-q)
+   :rsa-key-prime-q
+   :dsa-key-p
+   :dsa-key-q
+   :dsa-key-g
+   :dsa-key-y
+   :dsa-key-x)
   (:import-from :cl-rfc4251)
   (:import-from :uiop)
   (:import-from :alexandria)
@@ -86,10 +91,19 @@
 
    ;; rsa
    :rsa-public-key
+   :rsa-private-key
    :rsa-key-exponent  ;; Re-export from ironclad
    :rsa-key-modulus   ;; Re-export from ironclad
    :rsa-key-prime-p   ;; Re-export from ironclad
-   :rsa-key-prime-q)) ;; Re-export from ironclad
+   :rsa-key-prime-q   ;; Re-export from ironclad
+
+   ;; dsa
+   :dsa-public-key
+   :dsa-key-p         ;; Re-export from ironclad
+   :dsa-key-q         ;; Re-export from ironclad
+   :dsa-key-g         ;; Re-export from ironclad
+   :dsa-key-y         ;; Re-export from ironclad
+   :dsa-key-x))       ;; Re-export from ironclad
 (in-package :cl-ssh-keys)
 
 (defclass base-key ()

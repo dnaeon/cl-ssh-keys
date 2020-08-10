@@ -69,7 +69,6 @@
   (:documentation "Base class for representing an OpenSSH private key"))
 
 ;; TODO: Add support for encrypted keys
-;; TODO: Return total number of bytes read from the stream
 (defmethod rfc4251:decode ((type (eql :private-key)) stream &key)
   "Decodes an OpenSSH private key from the given stream"
   (let* (cipher

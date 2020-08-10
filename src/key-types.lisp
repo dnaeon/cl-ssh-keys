@@ -39,12 +39,12 @@
     (:name "ssh-dss"
      :plain-name "ssh-dss"
      :short-name "DSA"
-     :id :ssh-dsa
+     :id :ssh-dss
      :is-cert nil)
     (:name "ssh-dss-cert-v01@openssh.com"
      :plain-name "ssh-dss"
      :short-name "DSA-CERT"
-     :id :ssh-dsa-cert
+     :id :ssh-dss-cert
      :is-cert t)
     (:name "ecdsa-sha2-nistp256"
      :plain-name "ecdsa-sha2-nistp256"
