@@ -62,7 +62,7 @@
    ;; public-key
    :base-public-key
    :parse-public-key
-   :parse-public-key-from-file
+   :parse-public-key-file
    :with-public-key
    :with-public-key-file
 
@@ -80,7 +80,7 @@
    :extract-private-key-from-file
    :private-key-padding-is-correct-p
    :parse-private-key
-   :parse-private-key-from-file
+   :parse-private-key-file
 
    ;; rsa
    :rsa-public-key

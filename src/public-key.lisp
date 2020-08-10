@@ -129,7 +129,7 @@ BODY with VAR bound to the decoded public key"
 (defmacro with-public-key-file ((var path) &body body)
   "Parses the public key from the given PATH and evaluates the
 BODY with VAR bound to the decoded public key"
-  `(let ((,var (parse-public-key-from-file ,path)))
+  `(let ((,var (parse-public-key-file ,path)))
      ,@body))
 
 (defun parse-public-key (text)
@@ -161,7 +161,7 @@ BODY with VAR bound to the decoded public key"
         (declare (ignore size))
         key))))
 
-(defun parse-public-key-from-file (path)
+(defun parse-public-key-file (path)
   "Parses an OpenSSH public key from the given path"
   (with-open-file (in path)
     (parse-public-key (read-line in))))

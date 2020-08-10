@@ -319,6 +319,6 @@
       key)))
 
 ;; TODO: Add support for encrypted keys
-(defun parse-private-key-from-file (path)
+(defun parse-private-key-file (path)
   "Parses an OpenSSH private key from the given path"
   (parse-private-key (alexandria:read-file-into-string path)))

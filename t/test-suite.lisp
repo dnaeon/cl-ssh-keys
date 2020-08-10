@@ -41,7 +41,7 @@
 
 (deftest rsa-keys
   (testing "Parse RSA 1024-bit public key"
-    (let ((key (ssh-keys:parse-public-key-from-file (get-test-key-path #P"id_rsa_1024.pub"))))
+    (let ((key (ssh-keys:parse-public-key-file (get-test-key-path #P"id_rsa_1024.pub"))))
       (ok (string= (ssh-keys:fingerprint :md5 key)
                    "dd:e6:24:29:55:48:40:af:28:2c:68:f3:33:40:58:20")
           "RSA 1024-bit public key MD5 fingerprint")
@@ -60,7 +60,7 @@
           "RSA 1024-bit key comment")))
 
   (testing "Parse RSA 1024-bit private key"
-    (let ((key (ssh-keys:parse-private-key-from-file (get-test-key-path #P"id_rsa_1024"))))
+    (let ((key (ssh-keys:parse-private-key-file (get-test-key-path #P"id_rsa_1024"))))
       ;; Fingerprints of private keys are computed against the embedded public key
       (ok (string= (ssh-keys:fingerprint :md5 key)
                    "dd:e6:24:29:55:48:40:af:28:2c:68:f3:33:40:58:20")
@@ -86,7 +86,7 @@
           "RSA 3072-bit private key KDF options")))
 
   (testing "Parse RSA 3072-bit public key"
-    (let ((key (ssh-keys:parse-public-key-from-file (get-test-key-path #P"id_rsa_3072.pub"))))
+    (let ((key (ssh-keys:parse-public-key-file (get-test-key-path #P"id_rsa_3072.pub"))))
       (ok (string= (ssh-keys:fingerprint :md5 key)
                    "04:02:4b:b2:43:39:a4:8e:89:47:49:6f:30:78:94:1e")
           "RSA 3072-bit public key MD5 fingerprint")
@@ -105,7 +105,7 @@
           "RSA 3072-bit key comment")))
 
   (testing "Parse RSA 3072-bit private key"
-    (let ((key (ssh-keys:parse-private-key-from-file (get-test-key-path #P"id_rsa_3072"))))
+    (let ((key (ssh-keys:parse-private-key-file (get-test-key-path #P"id_rsa_3072"))))
       ;; Fingerprints of private keys are computed against the embedded public key
       (ok (string= (ssh-keys:fingerprint :md5 key)
                    "04:02:4b:b2:43:39:a4:8e:89:47:49:6f:30:78:94:1e")
@@ -185,19 +185,19 @@
   (testing "with-public-key-file macro"
     (ok (expands '(ssh-keys:with-public-key-file (key #P"id_rsa.pub")
                    (ssh-keys:fingerprint :sha256 key))
-                 '(let ((key (ssh-keys:parse-public-key-from-file #P"id_rsa.pub")))
+                 '(let ((key (ssh-keys:parse-public-key-file #P"id_rsa.pub")))
                    (ssh-keys:fingerprint :sha256 key)))
         "Test WITH-PUBLIC-KEY-FILE macro")))
 
 (deftest invalid-keys
-  (ok (signals (ssh-keys:parse-public-key-from-file (get-test-key-path #P"id_rsa_unknown_key_type.pub")))
+  (ok (signals (ssh-keys:parse-public-key-file (get-test-key-path #P"id_rsa_unknown_key_type.pub")))
       "Signals on unknown key type")
-  (ok (signals (ssh-keys:parse-public-key-from-file (get-test-key-path #P"id_rsa_unknown_key_type")))
+  (ok (signals (ssh-keys:parse-public-key-file (get-test-key-path #P"id_rsa_unknown_key_type")))
       "Signals on invalid public key file")
-  (ok (signals (ssh-keys:parse-public-key-from-file (get-test-key-path #P"id_ed25519_key_type_mismatch")))
+  (ok (signals (ssh-keys:parse-public-key-file (get-test-key-path #P"id_ed25519_key_type_mismatch")))
       "Signals on mismatched key types")
-  (ok (signals (ssh-keys:parse-public-key-from-file (get-test-key-path #P"id_rsa_missing_key_type")))
+  (ok (signals (ssh-keys:parse-public-key-file (get-test-key-path #P"id_rsa_missing_key_type")))
       "Signals on missing key type")
-  (ok (signals (ssh-keys:parse-private-key-from-file (get-test-key-path #P"id_rsa_invalid_padding")))
+  (ok (signals (ssh-keys:parse-private-key-file (get-test-key-path #P"id_rsa_invalid_padding")))
       "Signals on invalid padding"))
 
