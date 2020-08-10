@@ -5,7 +5,7 @@
 (defsystem "cl-ssh-keys"
   :name "cl-ssh-keys"
   :long-name "cl-ssh-keys"
-  :description "Common Lisp system for generating and parsing OpenSSH keys"
+  :description "Common Lisp system for generating and parsing of OpenSSH keys"
   :version "0.1.0"
   :author "Marin Atanasov Nikolov <dnaeon@gmail.com>"
   :maintainer "Marin Atanasov Nikolov <dnaeon@gmail.com>"
