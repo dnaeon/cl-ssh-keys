@@ -169,7 +169,11 @@
       (ok (plusp (ssh-keys:rsa-key-prime-p priv-key))
           "Generated RSA private key first prime factor - p")
       (ok (plusp (ssh-keys:rsa-key-prime-q priv-key))
-          "Generated RSA private key second prime factor - q"))))
+          "Generated RSA private key second prime factor - q")))
+
+  (testing "Generate RSA private/public key -- invalid number of bits"
+    (ok (signals (ssh-keys:generate-key-pair :rsa :num-bits 512))
+        "Generate RSA 512-bit keys -- signals on bit size less than 1024")))
 
 (deftest invalid-keys
   (ok (signals (ssh-keys:parse-public-key-from-file (get-test-key-path #P"id_rsa_unknown_key_type.pub")))
