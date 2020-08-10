@@ -83,6 +83,7 @@
          encrypted-stream
          args
          priv-key
+         comment
          (total 0))
     ;; Parse AUTH_MAGIC header
     (multiple-value-bind (auth-magic size) (rfc4251:decode :c-string stream)
@@ -169,15 +170,19 @@
                      :kdf-options kdf-options
                      :checksum-int check-int-1))
 
-    (case (getf (key-kind public-key) :id)
-      (:ssh-rsa
-       (setf priv-key (apply #'rfc4251:decode :rsa-private-key encrypted-stream args)))
-      (t
-       (error 'invalid-key-error
-              :description "Invalid or unknown private key")))
+    (setf priv-key
+          (case (getf (key-kind public-key) :id) ;; Dispatch based on the public key id
+            (:ssh-rsa (apply #'rfc4251:decode :rsa-private-key encrypted-stream args))
+            (t
+             (error 'invalid-key-error
+                    :description "Invalid or unknown private key"))))
 
     ;; Decode comment
-    (setf (key-comment priv-key) (rfc4251:decode :string encrypted-stream))
+    (setf comment (rfc4251:decode :string encrypted-stream))
+    (setf (key-comment priv-key) comment)
+
+    ;; Also set the comment on the embedded public key
+    (setf (key-comment public-key) comment)
 
     ;; Perform a deterministic pad check
     (unless (private-key-padding-is-correct-p encrypted-stream)
