@@ -120,6 +120,18 @@ type name, when being embedded within a certificate."
       (format stream " ~a" comment))
     (format stream "~&")))
 
+(defmacro with-public-key ((var text) &body body)
+  "Parses the public key from the given TEXT and evaluates the
+BODY with VAR bound to the decoded public key"
+  `(let ((,var (parse-public-key ,text)))
+     ,@body))
+
+(defmacro with-public-key-file ((var path) &body body)
+  "Parses the public key from the given PATH and evaluates the
+BODY with VAR bound to the decoded public key"
+  `(let ((,var (parse-public-key-from-file ,path)))
+     ,@body))
+
 (defun parse-public-key (text)
   "Parses an OpenSSH public key from the given plain-text string"
   (let* ((parts (uiop:split-string text :separator '(#\Space)))

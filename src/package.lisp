@@ -63,6 +63,8 @@
    :base-public-key
    :parse-public-key
    :parse-public-key-from-file
+   :with-public-key
+   :with-public-key-file
 
    ;; private-key
    :+private-key-auth-magic+
