@@ -37,7 +37,9 @@
    :dsa-key-q
    :dsa-key-g
    :dsa-key-y
-   :dsa-key-x)
+   :dsa-key-x
+   :ed25519-key-x
+   :ed25519-key-y)
   (:import-from :cl-rfc4251)
   (:import-from :uiop)
   (:import-from :alexandria)
@@ -99,11 +101,18 @@
 
    ;; dsa
    :dsa-public-key
+   :dsa-private-key
    :dsa-key-p         ;; Re-export from ironclad
    :dsa-key-q         ;; Re-export from ironclad
    :dsa-key-g         ;; Re-export from ironclad
    :dsa-key-y         ;; Re-export from ironclad
-   :dsa-key-x))       ;; Re-export from ironclad
+   :dsa-key-x         ;; Re-export from ironclad
+
+   ;; ed25519
+   :ed25519-public-key
+   :ed25519-private-key
+   :ed25519-key-x     ;; Re-export from ironclad
+   :ed25519-key-y))   ;; Re-export from ironclad
 (in-package :cl-ssh-keys)
 
 (defclass base-key ()

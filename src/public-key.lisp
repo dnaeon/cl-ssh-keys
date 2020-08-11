@@ -50,6 +50,7 @@ from the binary stream and then dispatched to the respective implementation."
         (case key-id
           (:ssh-rsa (rfc4251:decode :rsa-public-key stream :kind key-type :comment comment))
           (:ssh-dss (rfc4251:decode :dsa-public-key stream :kind key-type :comment comment))
+          (:ssh-ed25519 (rfc4251:decode :ed25519-public-key stream :kind key-type :comment comment))
           (t
            (error 'invalid-key-error
                   :description (format nil "Unknown key type ~a" key-type-name))))
@@ -73,6 +74,7 @@ type name, when being embedded within a certificate."
      (case key-id
        (:ssh-rsa (rfc4251:encode :rsa-public-key key stream))
        (:ssh-dss (rfc4251:encode :dsa-public-key key stream))
+       (:ssh-ed25519 (rfc4251:encode :ed25519-public-key key stream))
        (t
         (error 'invalid-key-error
                :description (format nil "Unknown key type ~a" key-type-name)))))))

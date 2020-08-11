@@ -173,6 +173,7 @@
           (case (getf (key-kind public-key) :id) ;; Dispatch based on the public key id
             (:ssh-rsa (apply #'rfc4251:decode :rsa-private-key encrypted-stream args))
             (:ssh-dss (apply #'rfc4251:decode :dsa-private-key encrypted-stream args))
+            (:ssh-ed25519 (apply #'rfc4251:decode :ed25519-private-key encrypted-stream args))
             (t
              (error 'invalid-key-error
                     :description "Invalid or unknown private key"))))
@@ -229,6 +230,7 @@
     (case key-id
       (:ssh-rsa (rfc4251:encode :rsa-private-key key encrypted-stream))
       (:ssh-dss (rfc4251:encode :dsa-private-key key encrypted-stream))
+      (:ssh-ed25519 (rfc4251:encode :ed25519-private-key key encrypted-stream))
       (t
        (error 'unsupported-key-error
               :description (format nil "Unsupported private key type ~a" key-type-plain))))
