@@ -14,6 +14,7 @@
   :bug-tracker "https://github.com/dnaeon/cl-ssh-keys"
   :source-control "https://github.com/dnaeon/cl-ssh-keys"
   :depends-on (:cl-ssh-keys
+               :alexandria
                :rove)
   :components ((:module "tests"
                 :pathname #P"t/"

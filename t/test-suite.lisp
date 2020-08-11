@@ -41,7 +41,8 @@
 
 (deftest rsa-keys
   (testing "Parse RSA 1024-bit public key"
-    (let ((key (ssh-keys:parse-public-key-file (get-test-key-path #P"id_rsa_1024.pub"))))
+    (let ((key (ssh-keys:parse-public-key-file (get-test-key-path #P"id_rsa_1024.pub")))
+          (string-out-stream (make-string-output-stream)))
       (ok (string= (ssh-keys:fingerprint :md5 key)
                    "dd:e6:24:29:55:48:40:af:28:2c:68:f3:33:40:58:20")
           "RSA 1024-bit public key MD5 fingerprint")
@@ -57,10 +58,17 @@
       (ok (= (ssh-keys:key-bits key) 1024)
           "RSA 1024-bit key number of bits")
       (ok (string= (ssh-keys:key-comment key) "john.doe@localhost")
-          "RSA 1024-bit key comment")))
+          "RSA 1024-bit key comment")
+
+      ;; Verify encoding back into text representation
+      (ssh-keys:write-key key string-out-stream)
+      (ok (string= (alexandria:read-file-into-string (get-test-key-path #P"id_rsa_1024.pub"))
+                   (get-output-stream-string string-out-stream))
+          "Write RSA 1024-bit public key")))
 
   (testing "Parse RSA 1024-bit private key"
-    (let ((key (ssh-keys:parse-private-key-file (get-test-key-path #P"id_rsa_1024"))))
+    (let ((key (ssh-keys:parse-private-key-file (get-test-key-path #P"id_rsa_1024")))
+          (string-out-stream (make-string-output-stream)))
       ;; Fingerprints of private keys are computed against the embedded public key
       (ok (string= (ssh-keys:fingerprint :md5 key)
                    "dd:e6:24:29:55:48:40:af:28:2c:68:f3:33:40:58:20")
@@ -83,10 +91,17 @@
       (ok (string= (ssh-keys:key-kdf-name key) "none")
           "RSA 3072-bit private key KDF name")
       (ok (equalp (ssh-keys:key-kdf-options key) #())
-          "RSA 3072-bit private key KDF options")))
+          "RSA 3072-bit private key KDF options")
+
+      ;; Verify encoding back into text representation
+      (ssh-keys:write-key key string-out-stream)
+      (ok (string= (alexandria:read-file-into-string (get-test-key-path #P"id_rsa_1024"))
+                   (get-output-stream-string string-out-stream))
+          "Write RSA 1024-bit private key")))
 
   (testing "Parse RSA 3072-bit public key"
-    (let ((key (ssh-keys:parse-public-key-file (get-test-key-path #P"id_rsa_3072.pub"))))
+    (let ((key (ssh-keys:parse-public-key-file (get-test-key-path #P"id_rsa_3072.pub")))
+          (string-out-stream (make-string-output-stream)))
       (ok (string= (ssh-keys:fingerprint :md5 key)
                    "04:02:4b:b2:43:39:a4:8e:89:47:49:6f:30:78:94:1e")
           "RSA 3072-bit public key MD5 fingerprint")
@@ -102,10 +117,17 @@
       (ok (= (ssh-keys:key-bits key) 3072)
           "RSA 3072-bit key number of bits")
       (ok (string= (ssh-keys:key-comment key) "john.doe@localhost")
-          "RSA 3072-bit key comment")))
+          "RSA 3072-bit key comment")
+
+      ;; Verify encoding back into text representation
+      (ssh-keys:write-key key string-out-stream)
+      (ok (string= (alexandria:read-file-into-string (get-test-key-path #P"id_rsa_3072.pub"))
+                   (get-output-stream-string string-out-stream))
+          "Write RSA 3072-bit public key")))
 
   (testing "Parse RSA 3072-bit private key"
-    (let ((key (ssh-keys:parse-private-key-file (get-test-key-path #P"id_rsa_3072"))))
+    (let ((key (ssh-keys:parse-private-key-file (get-test-key-path #P"id_rsa_3072")))
+          (string-out-stream (make-string-output-stream)))
       ;; Fingerprints of private keys are computed against the embedded public key
       (ok (string= (ssh-keys:fingerprint :md5 key)
                    "04:02:4b:b2:43:39:a4:8e:89:47:49:6f:30:78:94:1e")
@@ -128,7 +150,13 @@
       (ok (string= (ssh-keys:key-kdf-name key) "none")
           "RSA 3072-bit private key KDF name")
       (ok (equalp (ssh-keys:key-kdf-options key) #())
-          "RSA 3072-bit private key KDF options")))
+          "RSA 3072-bit private key KDF options")
+
+      ;; Verify encoding back into text representation
+      (ssh-keys:write-key key string-out-stream)
+      (ok (string= (alexandria:read-file-into-string (get-test-key-path #P"id_rsa_3072"))
+                   (get-output-stream-string string-out-stream))
+          "Write RSA 3072-bit private key")))
 
   (testing "Generate RSA private/public key pair"
     (multiple-value-bind (priv-key pub-key) (ssh-keys:generate-key-pair :rsa :comment "rsa-key@localhost")
@@ -177,7 +205,8 @@
 
 (deftest dsa-keys
   (testing "Parse DSA 1024-bit public key"
-    (let ((key (ssh-keys:parse-public-key-file (get-test-key-path #P"id_dsa.pub"))))
+    (let ((key (ssh-keys:parse-public-key-file (get-test-key-path #P"id_dsa.pub")))
+          (string-out-stream (make-string-output-stream)))
       (ok (string= (ssh-keys:fingerprint :md5 key)
                    "ee:c9:41:84:29:e7:1f:95:98:ac:35:75:a5:5b:c7:a6")
           "DSA 1024-bit public key MD5 fingerprint")
@@ -193,10 +222,17 @@
       (ok (= (ssh-keys:key-bits key) 1024)
           "DSA 1024-bit public key number of bits")
       (ok (string= (ssh-keys:key-comment key) "john.doe@localhost")
-          "DSA 1024-bit public key comment")))
+          "DSA 1024-bit public key comment")
+
+      ;; Verify encoding back into text representation
+      (ssh-keys:write-key key string-out-stream)
+      (ok (string= (alexandria:read-file-into-string (get-test-key-path #P"id_dsa.pub"))
+                   (get-output-stream-string string-out-stream))
+          "Write DSA 1024-bit public key")))
 
   (testing "Parse DSA 1024-bit private key"
-    (let ((key (ssh-keys:parse-private-key-file (get-test-key-path #P"id_dsa"))))
+    (let ((key (ssh-keys:parse-private-key-file (get-test-key-path #P"id_dsa")))
+          (string-out-stream (make-string-output-stream)))
       (ok (string= (ssh-keys:fingerprint :md5 key)
                    "ee:c9:41:84:29:e7:1f:95:98:ac:35:75:a5:5b:c7:a6")
           "DSA 1024-bit private key MD5 fingerprint")
@@ -218,7 +254,13 @@
       (ok (string= (ssh-keys:key-kdf-name key) "none")
           "DSA 1024-bit private key KDF name")
       (ok (equalp (ssh-keys:key-kdf-options key) #())
-          "DSA 1024-bit private key KDF options")))
+          "DSA 1024-bit private key KDF options")
+
+      ;; Verify encoding back into text representation
+      (ssh-keys:write-key key string-out-stream)
+      (ok (string= (alexandria:read-file-into-string (get-test-key-path #P"id_dsa"))
+                   (get-output-stream-string string-out-stream))
+          "Write DSA 1024-bit private key")))
 
   (testing "Generate DSA private/public key pair"
     (multiple-value-bind (priv-key pub-key) (ssh-keys:generate-key-pair :dsa :comment "dsa-key@localhost")
