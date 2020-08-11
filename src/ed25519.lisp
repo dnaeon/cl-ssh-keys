@@ -25,6 +25,14 @@
 
 (in-package :cl-ssh-keys)
 
+(defconstant +ed25519-public-key-bytes+
+  32
+  "Number of bytes for an Ed25519 public key")
+
+(defconstant +ed25519-secret-key-bytes+
+  64
+  "Number of bytes for an Ed25519 secret key")
+
 (defclass ed25519-public-key (base-public-key ironclad:ed25519-public-key)
   ()
   (:documentation "Represents an OpenSSH Ed25519 public key"))
@@ -59,12 +67,30 @@
                                                                       cipher-name kdf-name
                                                                       kdf-options checksum-int)
   "Decodes an Ed25519 private key from the given stream"
-  (let* ((y (rfc4251:decode :buffer stream))  ;; Public key
-         (x (rfc4251:decode :buffer stream))) ;; Private key
-    ;; The public components must match
-    (unless (equalp (ironclad:ed25519-key-y public-key) y)
+  (let* ((y (rfc4251:decode :buffer stream))  ;; Public key buffer
+         (secret-buffer (rfc4251:decode :buffer stream)))  ;; Buffer which holds the private key + public key
+    (unless (= (length y) +ed25519-public-key-bytes+)
       (error 'invalid-key-error
-             :description "Invalid Ed25519 key. Public keys mismatch"))
+             :description "Invalid number of bytes for Ed25519 public key"))
+
+    (unless (= (length secret-buffer) +ed25519-secret-key-bytes+)
+      (error 'invalid-key-error
+             :description "Invalid number of bytes for Ed25519 secret key"))
+
+    ;; The public components must match
+    ;; Verify that the public key we've just decoded matches with the one
+    ;; that was provided to us.
+    (unless (equalp y (ironclad:ed25519-key-y public-key))
+      (error 'invalid-key-error
+             :description "Invalid Ed25519 key. Decoded and provided public keys mismatch"))
+
+    ;; Verify that the public key contained within the secret buffer
+    ;; matches with the one that was provided to us.
+    ;; The subsequence 32..64 from the secret buffer holds the public key.
+    (unless (equalp (ironclad:ed25519-key-y public-key)
+                    (subseq secret-buffer 32))
+      (error 'invalid-key-error
+             :description "Invalid Ed25519 key. Decoded and provided public keys mismatch with secret buffer"))
 
     (make-instance 'ed25519-private-key
                    :kind kind
@@ -74,15 +100,18 @@
                    :kdf-options kdf-options
                    :checksum-int checksum-int
                    :y y
-                   :x x)))
+                   :x (subseq secret-buffer 0 32)))) ;; The private key is in the first 32 bytes of the secret buffer
 
 (defmethod rfc4251:encode ((type (eql :ed25519-private-key)) (key ed25519-private-key) stream &key)
   "Encodes the Ed25519 private key into the given binary stream"
   (let* ((y (ironclad:ed25519-key-y key))  ;; Public key
-         (x (ironclad:ed25519-key-x key))) ;; Private key
+         (x (ironclad:ed25519-key-x key)) ;; Private key
+         (secret-buffer (rfc4251:make-binary-output-stream))) ;; The secret buffer holds the private + public key
+    (rfc4251:encode :raw-bytes x secret-buffer)
+    (rfc4251:encode :raw-bytes y secret-buffer)
     (+
      (rfc4251:encode :buffer y stream)
-     (rfc4251:encode :buffer x stream))))
+     (rfc4251:encode :buffer (rfc4251:binary-output-stream-data secret-buffer) stream))))
 
 (defmethod key-bits ((key ed25519-private-key))
   "Returns the number of bits of the embedded public key"
@@ -109,6 +138,6 @@
                                   :checksum-int checksum-int
                                   :kind key-type
                                   :comment comment
-                                  :y (ironclad:ed25519-key-y ironclad-priv-key)
+                                  :y (ironclad:ed25519-key-y ironclad-pub-key)
                                   :x (ironclad:ed25519-key-x ironclad-priv-key))))
     (values priv-key pub-key)))
