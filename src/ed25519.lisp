@@ -38,7 +38,8 @@
   (:documentation "Represents an OpenSSH Ed25519 public key"))
 
 (defmethod rfc4251:decode ((type (eql :ed25519-public-key)) stream &key kind comment)
-  "Decodes an Ed25519 public key from the given binary stream"
+  "Decodes an Ed25519 public key from the given binary stream.
+See https://tools.ietf.org/html/draft-josefsson-eddsa-ed25519-03 for more details."
   (unless kind
     (error 'invalid-key-error
            :description "Public key kind was not specified"))
