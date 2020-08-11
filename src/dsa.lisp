@@ -65,3 +65,79 @@
 (defmethod key-bits ((key dsa-public-key))
   "Returns the number of bits for the DSA public key"
   (integer-length (ironclad:dsa-key-p key)))
+
+(defclass dsa-private-key (base-private-key ironclad:dsa-private-key)
+  ()
+  (:documentation "Represents an OpenSSH DSA private key"))
+
+(defmethod rfc4251:decode ((type (eql :dsa-private-key)) stream &key kind public-key
+                                                                  cipher-name kdf-name
+                                                                  kdf-options checksum-int)
+  "Decodes a DSA private key from the given stream"
+  ;; The DSA parameters as defined in FIPS-186-2
+  (let* ((p (rfc4251:decode :mpint stream))
+         (q (rfc4251:decode :mpint stream))
+         (g (rfc4251:decode :mpint stream))
+         (y (rfc4251:decode :mpint stream))
+         (x (rfc4251:decode :mpint stream))
+         (pub-key-components (ironclad:destructure-public-key public-key)))
+    ;; The public components encoded in the encrypted section
+    ;; must match with the already decoded public key.
+    (unless (and (= p (getf pub-key-components :p))
+                 (= q (getf pub-key-components :q))
+                 (= g (getf pub-key-components :g))
+                 (= y (getf pub-key-components :y)))
+      (error 'invalid-key-error
+             :description "Invalid DSA key. Public keys mismatch"))
+
+    (make-instance 'dsa-private-key
+                   :kind kind
+                   :public-key public-key
+                   :cipher-name cipher-name
+                   :kdf-name kdf-name
+                   :kdf-options kdf-options
+                   :checksum-int checksum-int
+                   :group (make-instance 'ironclad::discrete-logarithm-group :p p :q q :g g)
+                   :x x
+                   :y y)))
+
+(defmethod rfc4251:encode ((type (eql :dsa-private-key)) (key dsa-private-key) stream &key)
+  "Encodes the DSA private key into the given binary stream"
+  (destructuring-bind (&key p q g y x) (ironclad:destructure-private-key key)
+    (+
+     (rfc4251:encode :mpint p stream)
+     (rfc4251:encode :mpint q stream)
+     (rfc4251:encode :mpint g stream)
+     (rfc4251:encode :mpint y stream)
+     (rfc4251:encode :mpint x stream))))
+
+(defmethod key-bits ((key dsa-private-key))
+  "Returns the number of bits of the embedded public key"
+  (with-slots (public-key) key
+    (integer-length (ironclad:dsa-key-p public-key))))
+
+;; TODO: Add support for encrypted private keys
+(defmethod generate-key-pair ((kind (eql :dsa)) &key comment)
+  "Generates a new pair of DSA public and private keys"
+  (let* ((key-type (get-key-type :ssh-dss :by :id))
+         (checksum-int (ironclad:random-bits 32))
+         (priv-pub-pair (multiple-value-list (ironclad:generate-key-pair :dsa :num-bits 1024))) ;; DSA keys must be exactly 1024 bits
+         (ironclad-priv-key (first priv-pub-pair))
+         (ironclad-pub-key (second priv-pub-pair))
+         (pub-key (make-instance 'dsa-public-key
+                                 :group (ironclad::group ironclad-pub-key)
+                                 :y (ironclad:dsa-key-y ironclad-pub-key)
+                                 :kind key-type
+                                 :comment comment))
+         (priv-key (make-instance 'dsa-private-key
+                                  :public-key pub-key
+                                  :cipher-name "none"
+                                  :kdf-name "none"
+                                  :kdf-options #()
+                                  :checksum-int checksum-int
+                                  :kind key-type
+                                  :comment comment
+                                  :group (ironclad::group ironclad-pub-key)
+                                  :x (ironclad:dsa-key-x ironclad-priv-key)
+                                  :y (ironclad:dsa-key-y ironclad-priv-key))))
+    (values priv-key pub-key)))
