@@ -65,7 +65,7 @@ CL-USER> (defparameter *public-key*
 ```
 
 You can retrieve the comment associated with a public key by using the
-`SSH-KEYS:KEY-COMMENT` reader.
+`SSH-KEYS:KEY-COMMENT` accessor.
 
 ``` common-lisp
 CL-USER> (ssh-keys:key-comment *public-key*)
