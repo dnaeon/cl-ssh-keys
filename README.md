@@ -26,7 +26,7 @@ git clone https://github.com/dnaeon/cl-ssh-keys.git
 
 Load the system.
 
-``` shell
+``` common-lisp
 CL-USER> (ql:quickload :cl-ssh-keys)
 ```
 
@@ -127,7 +127,7 @@ CL-USER> (ssh-keys:key-bits *private-key*)
 3072
 ```
 
-OpenSSH private keys embed the private key within the binary blob of
+OpenSSH private keys embed the public key within the binary blob of
 the private key. From a private key you can get the embedded public
 key using `SSH-KEYS:EMBEDDED-PUBLIC-KEY`, e.g.
 
