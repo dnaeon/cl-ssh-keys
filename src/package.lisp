@@ -40,6 +40,8 @@
    :dsa-key-x
    :ed25519-key-x
    :ed25519-key-y
+   :secp256r1-key-y
+   :secp256r1-key-x
    :secp384r1-key-y
    :secp384r1-key-x)
   (:import-from :cl-rfc4251)
@@ -121,6 +123,13 @@
    :ed25519-private-key
    :ed25519-key-x     ;; Re-export from ironclad
    :ed25519-key-y     ;; Re-export from ironclad
+
+   ;; ecdsa-nistp256
+   :+nistp256-identifier+
+   :ecdsa-nistp256-public-key
+   :ecdsa-nistp256-private-key
+   :secp256r1-key-y   ;; Re-export from ironclad
+   :secp256r1-key-x   ;; Re-export from ironclad
 
    ;; ecdsa-nistp384
    :+nistp384-identifier+

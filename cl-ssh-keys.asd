@@ -35,5 +35,6 @@
                 :components ((:file "rsa")
                              (:file "dsa")
                              (:file "ed25519")
+                             (:file "ecdsa-nistp256")
                              (:file "ecdsa-nistp384"))))
   :in-order-to ((test-op (test-op "cl-ssh-keys.test"))))
