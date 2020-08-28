@@ -44,8 +44,12 @@
   (:import-from :uiop)
   (:import-from :alexandria)
   (:export
+   ;; package
+   :base-key
    :key-kind
    :key-comment
+   :base-ecdsa-nistp-key
+   :ecdsa-curve-identifier
 
    ;; conditions
    :invalid-public-key-error
@@ -68,6 +72,7 @@
 
    ;; public-key
    :base-public-key
+   :base-ecdsa-nistp-public-key
    :parse-public-key
    :parse-public-key-file
    :with-public-key
@@ -78,6 +83,7 @@
    :+private-key-mark-begin+
    :+private-key-mark-end+
    :base-private-key
+   :base-ecdsa-nistp-private-key
    :embedded-public-key
    :key-cipher-name
    :key-kdf-name
@@ -127,3 +133,11 @@
     :accessor key-comment
     :documentation "Comment associated with the key"))
   (:documentation "Base class for representing an OpenSSH key"))
+
+(defclass base-ecdsa-nistp-key (base-key)
+  ((identifier
+    :initarg :identifier
+    :initform (error "Must specify curve identifier")
+    :reader ecdsa-curve-identifier
+    :documentation "Identifier of the elliptic curve domain parameters"))
+  (:documentation "Base class for representing an OpenSSH ECDSA key"))

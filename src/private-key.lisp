@@ -68,6 +68,10 @@
     :documentation "Checksum integer for private keys"))
   (:documentation "Base class for representing an OpenSSH private key"))
 
+(defclass base-ecdsa-nistp-private-key (base-ecdsa-nistp-key base-private-key)
+  ()
+  (:documentation "Base class for representing an OpenSSH ECDSA private key"))
+
 ;; TODO: Add support for encrypted keys
 (defmethod rfc4251:decode ((type (eql :private-key)) stream &key)
   "Decodes an OpenSSH private key from the given stream"

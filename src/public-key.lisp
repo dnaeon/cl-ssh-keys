@@ -29,6 +29,10 @@
   ()
   (:documentation "Base class for representing an OpenSSH public key"))
 
+(defclass base-ecdsa-nistp-public-key (base-ecdsa-nistp-key base-public-key)
+  ()
+  (:documentation "Base class for representing an OpenSSH ECDSA public key"))
+
 (defmethod rfc4251:decode ((type (eql :public-key)) stream &key key-type-name comment)
   "Decode a public key from the given stream. If KEY-TYPE-NAME is specified
 then we dispatch decoding to the respective implementation of the given
