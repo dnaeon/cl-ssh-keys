@@ -269,7 +269,7 @@ ECDSA keys can be generated using NIST P-256, NIST P-384 or NIST P-521
 curves. The following examples show how to create 256, 384 and 521 bit
 ECDSA keys.
 
-``` shell
+``` common-lisp
 CL-USER> (ssh-keys:generate-key-pair :ecdsa-nistp256)
 CL-USER> (ssh-keys:generate-key-pair :ecdsa-nistp384)
 CL-USER> (ssh-keys:generate-key-pair :ecdsa-nistp521)
