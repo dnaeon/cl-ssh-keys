@@ -180,6 +180,7 @@
             (:ssh-ed25519 (apply #'rfc4251:decode :ed25519-private-key encrypted-stream args))
             (:ecdsa-sha2-nistp256 (apply #'rfc4251:decode :ecdsa-nistp256-private-key encrypted-stream args))
             (:ecdsa-sha2-nistp384 (apply #'rfc4251:decode :ecdsa-nistp384-private-key encrypted-stream args))
+            (:ecdsa-sha2-nistp521 (apply #'rfc4251:decode :ecdsa-nistp521-private-key encrypted-stream args))
             (t
              (error 'invalid-key-error
                     :description "Invalid or unknown private key"))))
@@ -239,6 +240,7 @@
       (:ssh-ed25519 (rfc4251:encode :ed25519-private-key key encrypted-stream))
       (:ecdsa-sha2-nistp256 (rfc4251:encode :ecdsa-nistp256-private-key key encrypted-stream))
       (:ecdsa-sha2-nistp384 (rfc4251:encode :ecdsa-nistp384-private-key key encrypted-stream))
+      (:ecdsa-sha2-nistp521 (rfc4251:encode :ecdsa-nistp521-private-key key encrypted-stream))
       (t
        (error 'unsupported-key-error
               :description (format nil "Unsupported private key type ~a" key-type-plain))))

@@ -43,7 +43,9 @@
    :secp256r1-key-y
    :secp256r1-key-x
    :secp384r1-key-y
-   :secp384r1-key-x)
+   :secp384r1-key-x
+   :secp521r1-key-y
+   :secp521r1-key-x)
   (:import-from :cl-rfc4251)
   (:import-from :uiop)
   (:import-from :alexandria)
@@ -136,7 +138,14 @@
    :ecdsa-nistp384-public-key
    :ecdsa-nistp384-private-key
    :secp384r1-key-y   ;; Re-export from ironclad
-   :secp384r1-key-x)) ;; Re-export from ironclad
+   :secp384r1-key-x   ;; Re-export from ironclad
+
+   ;; ecdsa-nistp521
+   :+nistp521-identifier+
+   :ecdsa-nistp521-public-key
+   :ecdsa-nistp521-private-key
+   :secp521r1-key-y   ;; Re-export from ironclad
+   :secp521r1-key-x)) ;; Re-export from ironclad
 (in-package :cl-ssh-keys)
 
 (defclass base-key ()
