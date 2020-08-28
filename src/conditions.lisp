@@ -29,7 +29,9 @@
   ((description
     :initarg :description
     :reader error-description))
-  (:documentation "Base error condition"))
+  (:documentation "Base error condition")
+  (:report (lambda (condition stream)
+             (format stream "~a" (error-description condition)))))
 
 (define-condition invalid-key-error (base-error)
   ()

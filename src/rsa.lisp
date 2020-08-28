@@ -148,7 +148,7 @@
   "Generates a new pair of RSA public and private keys"
   (when (< num-bits 1024)
     (error 'unsupported-key-error :description "Minimum key length for RSA keys is 1024"))
-  (let* ((key-type (get-key-type :ssh-rsa :by :id))
+  (let* ((key-type (get-key-type-or-lose :ssh-rsa :by :id))
          (checksum-int (ironclad:random-bits 32))
          (priv-pub-pair (multiple-value-list (ironclad:generate-key-pair :rsa :num-bits num-bits)))
          (ironclad-priv-key (first priv-pub-pair))

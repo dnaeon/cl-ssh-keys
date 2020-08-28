@@ -122,7 +122,7 @@
 ;; TODO: Add support for encrypted private keys
 (defmethod generate-key-pair ((kind (eql :ecdsa-nistp256)) &key comment)
   "Generates a new pair of ECDSA NIST P-256 public and private keys"
-  (let* ((key-type (get-key-type :ecdsa-sha2-nistp256 :by :id))
+  (let* ((key-type (get-key-type-or-lose :ecdsa-sha2-nistp256 :by :id))
          (checksum-int (ironclad:random-bits 32))
          (priv-pub-pair (multiple-value-list (ironclad:generate-key-pair :secp256r1)))
          (ironclad-priv-key (first priv-pub-pair))

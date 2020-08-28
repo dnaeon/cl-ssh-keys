@@ -99,7 +99,7 @@
     ;; TODO: Add support for encrypted keys
     (multiple-value-bind (cipher-name size) (rfc4251:decode :string stream)
       (incf total size)
-      (setf cipher (get-cipher-by-name cipher-name))
+      (setf cipher (get-cipher-by-name-or-lose cipher-name))
       (unless cipher
         (error 'invalid-key-error
                :description (format nil "Unknown cipher name found ~a" cipher-name)))
@@ -208,7 +208,7 @@
          (key-type (key-kind key))
          (key-type-plain (getf key-type :plain-name))
          (key-id (getf key-type :id))
-         (cipher (get-cipher-by-name (key-cipher-name key)))
+         (cipher (get-cipher-by-name-or-lose (key-cipher-name key)))
          (cipher-blocksize (getf cipher :blocksize)))
     (unless cipher
       (error 'invalid-key-error

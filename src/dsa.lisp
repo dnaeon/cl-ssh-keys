@@ -119,7 +119,7 @@
 ;; TODO: Add support for encrypted private keys
 (defmethod generate-key-pair ((kind (eql :dsa)) &key comment)
   "Generates a new pair of DSA public and private keys"
-  (let* ((key-type (get-key-type :ssh-dss :by :id))
+  (let* ((key-type (get-key-type-or-lose :ssh-dss :by :id))
          (checksum-int (ironclad:random-bits 32))
          (priv-pub-pair (multiple-value-list (ironclad:generate-key-pair :dsa :num-bits 1024))) ;; DSA keys must be exactly 1024 bits
          (ironclad-priv-key (first priv-pub-pair))

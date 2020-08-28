@@ -47,7 +47,7 @@ from the binary stream and then dispatched to the respective implementation."
         (incf total size)
         (setf key-type-name value)))
 
-    (setf key-type (get-key-type key-type-name :by :name))
+    (setf key-type (get-key-type-or-lose key-type-name :by :name))
     (setf key-id (getf key-type :id))
 
     (multiple-value-bind (pub-key size)
@@ -149,14 +149,9 @@ BODY with VAR bound to the decoded public key"
 (defun parse-public-key (text)
   "Parses an OpenSSH public key from the given plain-text string"
   (let* ((parts (uiop:split-string text :separator '(#\Space)))
-         (key-type (get-key-type (first parts) :by :name))
+         (key-type (get-key-type-or-lose (first parts) :by :name))
          (data (second parts))
          (comment (third parts)))
-    ;; A key type identifier is expected
-    (unless key-type
-      (error 'invalid-key-error
-             :description "Missing or unknown key type"))
-
     ;; OpenSSH public keys are encoded in a way, so that the
     ;; key kind preceeds the actual public key components.
     ;; See RFC 4253 for more details.

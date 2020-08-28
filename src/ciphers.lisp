@@ -49,3 +49,10 @@
         :key (lambda (item)
                (getf item :name))
         :test #'equal))
+
+(defun get-cipher-by-name-or-lose (name)
+  (let ((cipher-info (get-cipher-by-name name)))
+    (unless cipher-info
+      (error 'base-error
+             :description (format nil "Unknown cipher name ~a" name)))
+    cipher-info))

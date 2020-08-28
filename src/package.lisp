@@ -71,10 +71,12 @@
    ;; key-types
    :*key-types*
    :get-key-type
+   :get-key-type-or-lose
 
    ;; ciphers
    :*ciphers*
    :get-cipher-by-name
+   :get-cipher-by-name-or-lose
 
    ;; public-key
    :base-public-key

@@ -94,3 +94,10 @@
         :key (lambda (item)
                (getf item by))
         :test #'equal))
+
+(defun get-key-type-or-lose (value &key (by :name))
+  (let ((key-type (get-key-type value :by by)))
+    (unless key-type
+      (error 'base-error
+             :description (format nil "Unknown key type ~a" value)))
+    key-type))

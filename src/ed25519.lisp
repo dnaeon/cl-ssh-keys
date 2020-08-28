@@ -122,7 +122,7 @@ See https://tools.ietf.org/html/draft-josefsson-eddsa-ed25519-03 for more detail
 ;; TODO: Add support for encrypted private keys
 (defmethod generate-key-pair ((kind (eql :ed25519)) &key comment)
   "Generates a new pair of Ed25519 public and private keys"
-  (let* ((key-type (get-key-type :ssh-ed25519 :by :id))
+  (let* ((key-type (get-key-type-or-lose :ssh-ed25519 :by :id))
          (checksum-int (ironclad:random-bits 32))
          (priv-pub-pair (multiple-value-list (ironclad:generate-key-pair :ed25519)))
          (ironclad-priv-key (first priv-pub-pair))
