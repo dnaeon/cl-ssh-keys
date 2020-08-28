@@ -105,7 +105,7 @@ See https://tools.ietf.org/html/draft-josefsson-eddsa-ed25519-03 for more detail
 
 (defmethod rfc4251:encode ((type (eql :ed25519-private-key)) (key ed25519-private-key) stream &key)
   "Encodes the Ed25519 private key into the given binary stream"
-  (let* ((y (ironclad:ed25519-key-y key))  ;; Public key
+  (let* ((y (ironclad:ed25519-key-y key)) ;; Public key
          (x (ironclad:ed25519-key-x key)) ;; Private key
          (secret-buffer (rfc4251:make-binary-output-stream))) ;; The secret buffer holds the private + public key
     (rfc4251:encode :raw-bytes x secret-buffer)
