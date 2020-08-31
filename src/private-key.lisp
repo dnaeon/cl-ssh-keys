@@ -225,7 +225,7 @@
                     (embedded-public-key key)
                     pub-key-stream)
     (rfc4251:encode :buffer
-                    (rfc4251:binary-output-stream-data pub-key-stream)
+                    (rfc4251:get-binary-stream-bytes pub-key-stream)
                     tmp-stream)
 
     ;; Encrypted buffer
@@ -249,17 +249,17 @@
     (rfc4251:encode :string (or (key-comment key) "") encrypted-stream)
 
     ;; Padding
-    (loop for size = (length (rfc4251:binary-output-stream-data encrypted-stream))
+    (loop for size = (length (rfc4251:get-binary-stream-bytes encrypted-stream))
           for i from 1
           until (zerop (mod size cipher-blocksize))
           do
              (rfc4251:encode :byte i encrypted-stream))
 
     ;; Write out the encrypted buffer
-    (rfc4251:encode :buffer (rfc4251:binary-output-stream-data encrypted-stream) tmp-stream)
+    (rfc4251:encode :buffer (rfc4251:get-binary-stream-bytes encrypted-stream) tmp-stream)
 
     ;; Flush out the temp buffer
-    (rfc4251:encode :raw-bytes (rfc4251:binary-output-stream-data tmp-stream) stream)))
+    (rfc4251:encode :raw-bytes (rfc4251:get-binary-stream-bytes tmp-stream) stream)))
 
 (defmethod fingerprint ((hash-spec (eql :md5)) (key base-private-key) &key)
   "Computes the MD5 fingerprint of the embedded public key"
@@ -280,7 +280,7 @@
   "Writes the private key in its text representation"
   (let* ((s (rfc4251:make-binary-output-stream))
          (size (rfc4251:encode :private-key key s))
-         (data (rfc4251:binary-output-stream-data s))
+         (data (rfc4251:get-binary-stream-bytes s))
          (encoded (binascii:encode-base64 data)))
     (declare (ignore size))
     (format stream "~a~&" +private-key-mark-begin+)

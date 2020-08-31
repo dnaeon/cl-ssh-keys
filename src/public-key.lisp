@@ -93,7 +93,7 @@ type name, when being embedded within a certificate."
   "Computes the MD5 fingerprint of the given public key"
   (let* ((stream (rfc4251:make-binary-output-stream))
          (size (rfc4251:encode :public-key key stream))
-         (bytes (rfc4251:binary-output-stream-data stream))
+         (bytes (rfc4251:get-binary-stream-bytes stream))
          (digest (ironclad:digest-sequence :md5 bytes)))
     (declare (ignore size))
     (format nil "~{~(~2,'0x~)~^:~}" (coerce digest 'list))))
@@ -102,7 +102,7 @@ type name, when being embedded within a certificate."
   "Computes the SHA-1 fingerprint of the given public key"
   (let* ((stream (rfc4251:make-binary-output-stream))
          (size (rfc4251:encode :public-key key stream))
-         (bytes (rfc4251:binary-output-stream-data stream))
+         (bytes (rfc4251:get-binary-stream-bytes stream))
          (digest (ironclad:digest-sequence :sha1 bytes))
          (encoded (binascii:encode-base64 digest))
          (trim-position (position #\= encoded :test #'char=))) ;; Trim padding characters
@@ -113,7 +113,7 @@ type name, when being embedded within a certificate."
   "Computes the SHA-256 fingerprint of the given public key"
   (let* ((stream (rfc4251:make-binary-output-stream))
          (size (rfc4251:encode :public-key key stream))
-         (bytes (rfc4251:binary-output-stream-data stream))
+         (bytes (rfc4251:get-binary-stream-bytes stream))
          (digest (ironclad:digest-sequence :sha256 bytes))
          (encoded (binascii:encode-base64 digest))
          (trim-position (position #\= encoded :test #'char=))) ;; Trim padding characters
@@ -124,7 +124,7 @@ type name, when being embedded within a certificate."
   "Writes the public key in its text representation"
   (let* ((s (rfc4251:make-binary-output-stream))
          (size (rfc4251:encode :public-key key s))
-         (data (rfc4251:binary-output-stream-data s))
+         (data (rfc4251:get-binary-stream-bytes s))
          (encoded (binascii:encode-base64 data))
          (key-type-name (getf (key-kind key) :plain-name))
          (comment (key-comment key)))

@@ -112,7 +112,7 @@ See https://tools.ietf.org/html/draft-josefsson-eddsa-ed25519-03 for more detail
     (rfc4251:encode :raw-bytes y secret-buffer)
     (+
      (rfc4251:encode :buffer y stream)
-     (rfc4251:encode :buffer (rfc4251:binary-output-stream-data secret-buffer) stream))))
+     (rfc4251:encode :buffer (rfc4251:get-binary-stream-bytes secret-buffer) stream))))
 
 (defmethod key-bits ((key ed25519-private-key))
   "Returns the number of bits of the embedded public key"
