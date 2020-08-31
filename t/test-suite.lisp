@@ -474,7 +474,7 @@
       (ok (equal (ssh-keys:key-kind pub-key)
                  '(:name "ecdsa-sha2-nistp256" :plain-name "ecdsa-sha2-nistp256" :short-name "ECDSA" :id :ecdsa-sha2-nistp256 :is-cert nil))
           "Generated ECDSA NIST P-256 public key kind")
-      (ok (plusp (ssh-keys:secp256r1-key-y pub-key))
+      (ok (plusp (length (ssh-keys:secp256r1-key-y pub-key)))
           "Generated ECDSA NIST P-256 pulic key - y")
 
       ;; Private key
@@ -494,9 +494,9 @@
       (ok (equal (ssh-keys:embedded-public-key priv-key)
                  pub-key)
           "Generated ECDSA NIST P-256 private key embedded public key")
-      (ok (plusp (ssh-keys:secp256r1-key-y priv-key))
+      (ok (plusp (length (ssh-keys:secp256r1-key-y priv-key)))
           "Generated ECDSA NIST P-256 private key - y")
-      (ok (plusp (ssh-keys:secp256r1-key-x priv-key))
+      (ok (plusp (length (ssh-keys:secp256r1-key-x priv-key)))
           "Generated ECDSA NIST P-256 private key - x"))))
 
 (deftest ecdsa-nistp384-keys
@@ -569,7 +569,7 @@
       (ok (equal (ssh-keys:key-kind pub-key)
                  '(:name "ecdsa-sha2-nistp384" :plain-name "ecdsa-sha2-nistp384" :short-name "ECDSA" :id :ecdsa-sha2-nistp384 :is-cert nil))
           "Generated ECDSA NIST P-384 public key kind")
-      (ok (plusp (ssh-keys:secp384r1-key-y pub-key))
+      (ok (plusp (length (ssh-keys:secp384r1-key-y pub-key)))
           "Generated ECDSA NIST P-384 pulic key - y")
 
       ;; Private key
@@ -589,9 +589,9 @@
       (ok (equal (ssh-keys:embedded-public-key priv-key)
                  pub-key)
           "Generated ECDSA NIST P-384 private key embedded public key")
-      (ok (plusp (ssh-keys:secp384r1-key-y priv-key))
+      (ok (plusp (length (ssh-keys:secp384r1-key-y priv-key)))
           "Generated ECDSA NIST P-384 private key - y")
-      (ok (plusp (ssh-keys:secp384r1-key-x priv-key))
+      (ok (plusp (length (ssh-keys:secp384r1-key-x priv-key)))
           "Generated ECDSA NIST P-384 private key - x"))))
 
 (deftest ecdsa-nistp521-keys
@@ -664,7 +664,7 @@
       (ok (equal (ssh-keys:key-kind pub-key)
                  '(:name "ecdsa-sha2-nistp521" :plain-name "ecdsa-sha2-nistp521" :short-name "ECDSA" :id :ecdsa-sha2-nistp521 :is-cert nil))
           "Generated ECDSA NIST P-521 public key kind")
-      (ok (plusp (ssh-keys:secp521r1-key-y pub-key))
+      (ok (plusp (length (ssh-keys:secp521r1-key-y pub-key)))
           "Generated ECDSA NIST P-521 pulic key - y")
 
       ;; Private key
@@ -684,9 +684,9 @@
       (ok (equal (ssh-keys:embedded-public-key priv-key)
                  pub-key)
           "Generated ECDSA NIST P-521 private key embedded public key")
-      (ok (plusp (ssh-keys:secp521r1-key-y priv-key))
+      (ok (plusp (length (ssh-keys:secp521r1-key-y priv-key)))
           "Generated ECDSA NIST P-521 private key - y")
-      (ok (plusp (ssh-keys:secp521r1-key-x priv-key))
+      (ok (plusp (length (ssh-keys:secp521r1-key-x priv-key)))
           "Generated ECDSA NIST P-521 private key - x"))))
 
 (deftest with-macros

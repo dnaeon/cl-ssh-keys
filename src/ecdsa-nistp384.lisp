@@ -45,7 +45,7 @@
   ;; See https://tools.ietf.org/search/rfc4492#appendix-A for the
   ;; various names under which NIST P-384 curves are known.
   (let* ((identifier-data (multiple-value-list (rfc4251:decode :string stream))) ;; Identifier of elliptic curve domain parameters
-         (q-data (multiple-value-list (rfc4251:decode :mpint stream))) ;; Public key
+         (q-data (multiple-value-list (rfc4251:decode :buffer stream))) ;; Public key
          (size (+ (second identifier-data) (second q-data))) ;; Total number of bytes read from the stream
          (pk (make-instance 'ecdsa-nistp384-public-key
                             :kind kind
@@ -59,7 +59,7 @@
   (with-accessors ((identifier ecdsa-curve-identifier) (y ironclad:secp384r1-key-y)) key
     (+
      (rfc4251:encode :string identifier stream)
-     (rfc4251:encode :mpint y stream))))
+     (rfc4251:encode :buffer y stream))))
 
 (defmethod key-bits ((key ecdsa-nistp384-public-key))
   "Returns the number of bits for the ECDSA NIST P-384 public key"
@@ -85,13 +85,13 @@
 
     ;; Public key, also embedded in the encrypted section. Must match with the
     ;; one of the provided public key.
-    (setf q (rfc4251:decode :mpint stream))
-    (unless (= q (ironclad:secp384r1-key-y public-key))
+    (setf q (rfc4251:decode :buffer stream))
+    (unless (equalp q (ironclad:secp384r1-key-y public-key))
       (error 'invalid-key-error
              :description "Invalid ECDSA NIST P-384 key. Decoded and provided public keys mismatch"))
 
     ;; Decode private key
-    (setf d (rfc4251:decode :mpint stream))
+    (setf d (rfc4251:decode :buffer stream))
 
     (make-instance 'ecdsa-nistp384-private-key
                    :kind kind
@@ -111,8 +111,8 @@
          (x (ironclad:secp384r1-key-x key)))
     (+
      (rfc4251:encode :string identifier stream) ;; Curve identifier
-     (rfc4251:encode :mpint y stream) ;; Public key
-     (rfc4251:encode :mpint x stream)))) ;; Private key
+     (rfc4251:encode :buffer y stream) ;; Public key
+     (rfc4251:encode :buffer x stream)))) ;; Private key
 
 (defmethod key-bits ((key ecdsa-nistp384-private-key))
   "Returns the number of bits of the embedded public key"
@@ -128,19 +128,28 @@
          (ironclad-priv-key (first priv-pub-pair))
          (ironclad-pub-key (second priv-pub-pair))
 
-         ;; When encoding the private and public pairs we need to
-         ;; encode them as `mpint` values and preserve sign, so we
-         ;; convert the keys to scalars here first.
+         ;; The private and public keys are actually `mpint` values.
+         ;; However `ironclad` represents them as a raw bytes array,
+         ;; and we are internally keeping them this way here as well.
+         ;; Since `mpint` values according to RFC 4251 may have a sign,
+         ;; we need to first decode the values as returned by `ironclad`,
+         ;; then get their representation as `mpint` values, so we
+         ;; can properly encode them back.
          (x-bytes (ironclad:secp384r1-key-x ironclad-priv-key))
-         (y-bytes (ironclad:secp384r1-key-y ironclad-pub-key))
          (x-scalar (ironclad::ec-decode-scalar :secp384r1 x-bytes))
+         (x-stream (rfc4251:make-binary-output-stream))
+         (x-size (rfc4251:encode :mpint x-scalar x-stream))
+
+         (y-bytes (ironclad:secp384r1-key-y ironclad-pub-key))
          (y-scalar (ironclad::ec-decode-scalar :secp384r1 y-bytes))
+         (y-stream (rfc4251:make-binary-output-stream))
+         (y-size (rfc4251:encode :mpint y-scalar y-stream))
 
          (pub-key (make-instance 'ecdsa-nistp384-public-key
                                  :kind key-type
                                  :comment comment
                                  :identifier +nistp384-identifier+
-                                 :y y-scalar))
+                                 :y (rfc4251:get-binary-stream-bytes y-stream)))
          (priv-key (make-instance 'ecdsa-nistp384-private-key
                                   :public-key pub-key
                                   :cipher-name "none"
@@ -150,6 +159,7 @@
                                   :kind key-type
                                   :comment comment
                                   :identifier +nistp384-identifier+
-                                  :x x-scalar
-                                  :y y-scalar)))
+                                  :x (rfc4251:get-binary-stream-bytes x-stream)
+                                  :y (rfc4251:get-binary-stream-bytes y-stream))))
+    (declare (ignore x-size y-size))
     (values priv-key pub-key)))
