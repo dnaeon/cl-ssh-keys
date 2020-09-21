@@ -49,7 +49,7 @@
    (cipher-name
     :initarg :cipher-name
     :initform (error "Must specify cipher name")
-    :reader key-cipher-name
+    :accessor key-cipher-name
     :documentation "Private key cipher name")
    (kdf-name
     :initarg :kdf-name
