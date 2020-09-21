@@ -93,3 +93,27 @@
       (error 'base-error
              :description (format nil "Unknown cipher name ~a" name)))
     cipher-info))
+
+(defun get-cipher-for-encryption/decryption (cipher-name passphrase salt rounds)
+  "Returns a cipher that can be used for encryption/decryption of a private key"
+  (declare (type (simple-array (unsigned-byte 8) (*))
+                 passphrase salt)
+           (type string cipher-name)
+           (type fixnum rounds))
+  (let* ((cipher-info (get-cipher-by-name-or-lose cipher-name))
+         (iv-length (getf cipher-info :iv-length))
+         (key-length (getf cipher-info :key-length))
+         (mode (getf cipher-info :mode))
+         (ironclad-cipher (getf cipher-info :ironclad-cipher))
+         (kdf (ironclad:make-kdf :bcrypt-pbkdf))
+         (key-and-iv (ironclad:derive-key kdf
+                                          passphrase
+                                          salt
+                                          rounds
+                                          (+ key-length iv-length)))
+         (key (subseq key-and-iv 0 key-length))
+         (iv (subseq key-and-iv key-length (+ key-length iv-length))))
+    (ironclad:make-cipher ironclad-cipher
+                          :key key
+                          :mode mode
+                          :initialization-vector iv)))

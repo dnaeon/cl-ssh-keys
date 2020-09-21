@@ -368,29 +368,12 @@ BODY with VAR bound to the decoded private key"
             (return-from private-key-padding-is-correct-p nil)))
   t)
 
-(defun decrypt-private-section (encrypted cipher-name passphrase salt rounds)
-  "Decrypts the encrypted private key section using the given passphrase, salt and rounds"
-  (declare (type (simple-array (unsigned-byte 8) (*))
-                 encrypted passphrase salt)
-           (type string cipher-name)
-           (type fixnum rounds))
-  (let* ((cipher (get-cipher-by-name-or-lose cipher-name))
-         (iv-length (getf cipher :iv-length))
-         (key-length (getf cipher :key-length))
-         (mode (getf cipher :mode))
-         (ironclad-cipher (getf cipher :ironclad-cipher))
-         (kdf (ironclad:make-kdf :bcrypt-pbkdf))
-         (key-and-iv (ironclad:derive-key kdf
-                                          passphrase
-                                          salt
-                                          rounds
-                                          (+ key-length iv-length)))
-         (key (subseq key-and-iv 0 key-length))
-         (iv (subseq key-and-iv key-length (+ key-length iv-length)))
-         (cipher (ironclad:make-cipher ironclad-cipher
-                                       :key key
-                                       :mode mode
-                                       :initialization-vector iv)))
+(defun encrypt-private-key (text cipher-name passphrase salt rounds)
+  (let ((cipher (get-cipher-for-encryption/decryption cipher-name passphrase salt rounds)))
+    (ironclad:encrypt-in-place cipher text)))
+
+(defun decrypt-private-key (encrypted cipher-name passphrase salt rounds)
+  (let ((cipher (get-cipher-for-encryption/decryption cipher-name passphrase salt rounds)))
     (ironclad:decrypt-in-place cipher encrypted)))
 
 (defun parse-private-key (text &key passphrase)
