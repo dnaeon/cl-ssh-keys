@@ -65,12 +65,12 @@
     :documentation "Private key KDF name")
    (kdf-salt
     :initarg :kdf-salt
-    :initform (error "Must specify KDF salt")
+    :initform (ironclad:random-data +kdf-salt-size+)
     :reader key-kdf-salt
     :documentation "Salt used by the KDF function")
    (kdf-rounds
     :initarg :kdf-rounds
-    :initform (error "Must specify KDF rounds")
+    :initform *default-kdf-rounds*
     :accessor key-kdf-rounds
     :documentation "Number of iterations used to derive the key")
    (checksum-int
@@ -96,7 +96,7 @@
          kdf-options
          kdf-options-stream
          salt
-         (rounds 0)
+         rounds
          pub-key-stream
          public-key
          check-int-1
