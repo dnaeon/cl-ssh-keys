@@ -66,7 +66,8 @@ See https://tools.ietf.org/html/draft-josefsson-eddsa-ed25519-03 for more detail
 
 (defmethod rfc4251:decode ((type (eql :ed25519-private-key)) stream &key kind public-key
                                                                       cipher-name kdf-name
-                                                                      kdf-options checksum-int)
+                                                                      kdf-salt kdf-rounds
+                                                                      passphrase checksum-int)
   "Decodes an Ed25519 private key from the given stream"
   (let* ((y (rfc4251:decode :buffer stream))  ;; Public key buffer
          (secret-buffer (rfc4251:decode :buffer stream)))  ;; Buffer which holds the private key + public key
@@ -98,8 +99,10 @@ See https://tools.ietf.org/html/draft-josefsson-eddsa-ed25519-03 for more detail
                    :public-key public-key
                    :cipher-name cipher-name
                    :kdf-name kdf-name
-                   :kdf-options kdf-options
+                   :kdf-salt kdf-salt
+                   :kdf-rounds kdf-rounds
                    :checksum-int checksum-int
+                   :passphrase passphrase
                    :y y
                    :x (subseq secret-buffer 0 32)))) ;; The private key is in the first 32 bytes of the secret buffer
 
@@ -119,10 +122,11 @@ See https://tools.ietf.org/html/draft-josefsson-eddsa-ed25519-03 for more detail
   (with-slots (public-key) key
     (key-bits public-key)))
 
-;; TODO: Add support for encrypted private keys
-(defmethod generate-key-pair ((kind (eql :ed25519)) &key comment)
+(defmethod generate-key-pair ((kind (eql :ed25519)) &key comment passphrase)
   "Generates a new pair of Ed25519 public and private keys"
-  (let* ((key-type (get-key-type-or-lose :ssh-ed25519 :by :id))
+  (let* ((cipher-name (if passphrase *default-cipher-name* "none"))
+         (kdf-name (if passphrase "bcrypt" "none"))
+         (key-type (get-key-type-or-lose :ssh-ed25519 :by :id))
          (checksum-int (ironclad:random-bits 32))
          (priv-pub-pair (multiple-value-list (ironclad:generate-key-pair :ed25519)))
          (ironclad-priv-key (first priv-pub-pair))
@@ -133,9 +137,9 @@ See https://tools.ietf.org/html/draft-josefsson-eddsa-ed25519-03 for more detail
                                  :y (ironclad:ed25519-key-y ironclad-pub-key)))
          (priv-key (make-instance 'ed25519-private-key
                                   :public-key pub-key
-                                  :cipher-name "none"
-                                  :kdf-name "none"
-                                  :kdf-options #()
+                                  :cipher-name cipher-name
+                                  :kdf-name kdf-name
+                                  :passphrase passphrase
                                   :checksum-int checksum-int
                                   :kind key-type
                                   :comment comment
