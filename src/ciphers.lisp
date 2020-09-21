@@ -26,22 +26,55 @@
 (in-package :cl-ssh-keys)
 
 (defparameter *ciphers*
-  '((:name "3des-cbc" :blocksize 8)
-    (:name "aes128-cbc" :blocksize 16)
-    (:name "aes192-cbc" :blocksize 16)
-    (:name "aes256-cbc" :blocksize 16)
-    (:name "rijndael-cbc@lysator.liu.se" :blocksize 16)
-    (:name "aes128-ctr" :blocksize 16)
-    (:name "aes192-ctr" :blocksize 16)
-    (:name "aes256-ctr" :blocksize 16)
-    (:name "aes128-gcm@openssh.com" :blocksize 16)
-    (:name "aes256-gcm@openssh.com" :blocksize 16)
-    (:name "aes128-ctr" :blocksize 16)
-    (:name "aes192-ctr" :blocksize 16)
-    (:name "aes256-ctr" :blocksize 16)
-    (:name "chacha20-poly1305@openssh.com" :blocksize 8)
-    (:name "none" :blocksize 8))
-  "Various ciphers used by OpenSSH and their blocksize")
+  '((:name "3des-cbc"
+     :blocksize 8
+     :iv-length 8
+     :key-length 24
+     :mode :cbc
+     :ironclad-cipher :3des)
+    (:name "aes128-cbc"
+     :blocksize 16
+     :iv-length 16
+     :key-length 16
+     :mode :cbc
+     :ironclad-cipher :aes)
+    (:name "aes192-cbc"
+     :blocksize 16
+     :iv-length 16
+     :key-length 24
+     :mode :cbc
+     :ironclad-cipher :aes)
+    (:name "aes256-cbc"
+     :blocksize 16
+     :iv-length 16
+     :key-length 32
+     :mode :cbc
+     :ironclad-cipher :aes)
+    (:name "aes128-ctr"
+     :blocksize 16
+     :iv-length 16
+     :key-length 16
+     :mode :ctr
+     :ironclad-cipher :aes)
+    (:name "aes192-ctr"
+     :blocksize 16
+     :iv-length 16
+     :key-length 24
+     :mode :ctr
+     :ironclad-cipher :aes)
+    (:name "aes256-ctr"
+     :blocksize 16
+     :iv-length 16
+     :key-length 32
+     :mode :ctr
+     :ironclad-cipher :aes)
+    (:name "none"
+     :blocksize 8
+     :iv-length 0
+     :key-length 0
+     :mode nil
+     :ironclad-cipher nil))
+  "Various ciphers used by OpenSSH that are supported")
 
 (defun get-cipher-by-name (name)
   "Get a cipher by its name"
