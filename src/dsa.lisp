@@ -72,7 +72,8 @@
 
 (defmethod rfc4251:decode ((type (eql :dsa-private-key)) stream &key kind public-key
                                                                   cipher-name kdf-name
-                                                                  kdf-options checksum-int)
+                                                                  kdf-salt kdf-rounds
+                                                                  passphrase checksum-int)
   "Decodes a DSA private key from the given stream"
   ;; The DSA parameters as defined in FIPS-186-2
   (let* ((p (rfc4251:decode :mpint stream))
@@ -95,7 +96,9 @@
                    :public-key public-key
                    :cipher-name cipher-name
                    :kdf-name kdf-name
-                   :kdf-options kdf-options
+                   :kdf-salt kdf-salt
+                   :kdf-rounds kdf-rounds
+                   :passphrase passphrase
                    :checksum-int checksum-int
                    :group (make-instance 'ironclad::discrete-logarithm-group :p p :q q :g g)
                    :x x
@@ -117,9 +120,11 @@
     (integer-length (ironclad:dsa-key-p public-key))))
 
 ;; TODO: Add support for encrypted private keys
-(defmethod generate-key-pair ((kind (eql :dsa)) &key comment)
+(defmethod generate-key-pair ((kind (eql :dsa)) &key comment passphrase)
   "Generates a new pair of DSA public and private keys"
-  (let* ((key-type (get-key-type-or-lose :ssh-dss :by :id))
+  (let* ((cipher-name (if passphrase *default-cipher-name* "none"))
+         (kdf-name (if passphrase "bcrypt" "none"))
+         (key-type (get-key-type-or-lose :ssh-dss :by :id))
          (checksum-int (ironclad:random-bits 32))
          (priv-pub-pair (multiple-value-list (ironclad:generate-key-pair :dsa :num-bits 1024))) ;; DSA keys must be exactly 1024 bits
          (ironclad-priv-key (first priv-pub-pair))
@@ -131,9 +136,9 @@
                                  :comment comment))
          (priv-key (make-instance 'dsa-private-key
                                   :public-key pub-key
-                                  :cipher-name "none"
-                                  :kdf-name "none"
-                                  :kdf-options #()
+                                  :cipher-name cipher-name
+                                  :kdf-name kdf-name
+                                  :passphrase passphrase
                                   :checksum-int checksum-int
                                   :kind key-type
                                   :comment comment
