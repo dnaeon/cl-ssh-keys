@@ -77,12 +77,14 @@
   ()
   (:documentation "Base class for representing an OpenSSH ECDSA private key"))
 
-;; TODO: Add support for encrypted keys
-(defmethod rfc4251:decode ((type (eql :private-key)) stream &key)
+(defmethod rfc4251:decode ((type (eql :private-key)) stream &key passphrase)
   "Decodes an OpenSSH private key from the given stream"
   (let* (cipher
          kdf-name
          kdf-options
+         kdf-options-stream
+         salt
+         (rounds 0)
          pub-key-stream
          public-key
          check-int-1
@@ -92,6 +94,7 @@
          args
          priv-key
          comment
+         key-is-encrypted-p
          (total 0))
     ;; Parse AUTH_MAGIC header
     (multiple-value-bind (auth-magic size) (rfc4251:decode :c-string stream)
@@ -101,17 +104,12 @@
                :description "Expected AUTH_MAGIC header not found")))
 
     ;; Parse cipher name
-    ;; TODO: Add support for encrypted keys
     (multiple-value-bind (cipher-name size) (rfc4251:decode :string stream)
       (incf total size)
-      (setf cipher (get-cipher-by-name-or-lose cipher-name))
-      (unless cipher
-        (error 'invalid-key-error
-               :description (format nil "Unknown cipher name found ~a" cipher-name)))
-      ;; TODO: Remove this check once we can decrypt keys
-      (unless (string= cipher-name "none")
-        (error 'unsupported-key-error
-               :description "Encrypted keys are not supported yet")))
+      (setf cipher (get-cipher-by-name-or-lose cipher-name)))
+
+    (unless (string= (getf cipher :name) "none")
+      (setf key-is-encrypted-p t))
 
     ;; Parse KDF name
     (multiple-value-bind (value size) (rfc4251:decode :string stream)
@@ -123,10 +121,16 @@
                :description (format nil "Unknown KDF function name ~a" value))))
 
     ;; Parse kdf options
-    ;; TODO: Add support for encrypted keys
     (multiple-value-bind (value size) (rfc4251:decode :buffer stream)
       (incf total size)
       (setf kdf-options value))
+
+    ;; KDF options will contain the salt and the number of rounds, if
+    ;; the key has been encrypted using a known cipher.
+    (when key-is-encrypted-p
+      (setf kdf-options-stream (rfc4251:make-binary-input-stream kdf-options))
+      (setf salt (rfc4251:decode :buffer kdf-options-stream))
+      (setf rounds (rfc4251:decode :uint32 kdf-options-stream)))
 
     ;; Parse number of keys, which are embedded in the private key.
     ;; Only 1 key is expected here.
@@ -144,15 +148,28 @@
       (setf public-key (rfc4251:decode :public-key pub-key-stream)))
 
     ;; Read encrypted section.
-    ;; TODO: Add support for encrypted keys
     (multiple-value-bind (buffer size) (rfc4251:decode :buffer stream)
       (incf total size)
-      (setf encrypted-buffer buffer)
-      (setf encrypted-stream (rfc4251:make-binary-input-stream encrypted-buffer))
-      ;; Check size of encrypted data against the cipher blocksize that was used
-      (unless (zerop (mod (length encrypted-buffer) (getf cipher :blocksize)))
-        (error 'invalid-key-error
-               :description "Invalid private key format")))
+      (setf encrypted-buffer buffer))
+
+    ;; Check size of encrypted data against the cipher blocksize that was used
+    (unless (zerop (mod (length encrypted-buffer) (getf cipher :blocksize)))
+      (error 'invalid-key-error
+             :description "Invalid private key format"))
+
+    ;; Decrypt in-place, if needed.
+    (when key-is-encrypted-p
+      (unless passphrase
+        (error 'base-error :description "Key is encrypted. Passphrase is required"))
+      (decrypt-private-section encrypted-buffer
+                               (getf cipher :name)
+                               (ironclad:ascii-string-to-byte-array passphrase)
+                               salt
+                               rounds))
+
+    ;; Continue decoding the rest of the encrypted section, which by now should
+    ;; be decrypted, if given a correct passphrase.
+    (setf encrypted-stream (rfc4251:make-binary-input-stream encrypted-buffer))
 
     ;; Decode checksum integers.
     ;; If they don't match this means that the private key was
@@ -160,8 +177,8 @@
     (setf check-int-1 (rfc4251:decode :uint32 encrypted-stream))
     (setf check-int-2 (rfc4251:decode :uint32 encrypted-stream))
     (unless (= check-int-1 check-int-2)
-      (error 'invalid-key-error
-             :description "Checksum integers mismatch"))
+      (error 'base-error
+             :description "Checksum integers mismatch. Wrong passphrase."))
 
     ;; Parse key type name. Must match with the one of the public key.
     (unless (string= (rfc4251:decode :string encrypted-stream)
@@ -175,7 +192,8 @@
                      :public-key public-key
                      :cipher-name (getf cipher :name)
                      :kdf-name kdf-name
-                     :kdf-options kdf-options
+                     :kdf-salt salt
+                     :kdf-rounds rounds
                      :checksum-int check-int-1))
 
     (setf priv-key
@@ -337,18 +355,42 @@ BODY with VAR bound to the decoded private key"
             (return-from private-key-padding-is-correct-p nil)))
   t)
 
-;; TODO: Add support for encrypted keys
-(defun parse-private-key (text)
+(defun decrypt-private-section (encrypted cipher-name passphrase salt rounds)
+  "Decrypts the encrypted private key section using the given passphrase, salt and rounds"
+  (declare (type (simple-array (unsigned-byte 8) (*))
+                 encrypted passphrase salt)
+           (type string cipher-name)
+           (type fixnum rounds))
+  (let* ((cipher (get-cipher-by-name-or-lose cipher-name))
+         (iv-length (getf cipher :iv-length))
+         (key-length (getf cipher :key-length))
+         (mode (getf cipher :mode))
+         (ironclad-cipher (getf cipher :ironclad-cipher))
+         (kdf (ironclad:make-kdf :bcrypt-pbkdf))
+         (key-and-iv (ironclad:derive-key kdf
+                                          passphrase
+                                          salt
+                                          rounds
+                                          (+ key-length iv-length)))
+         (key (subseq key-and-iv 0 key-length))
+         (iv (subseq key-and-iv key-length (+ key-length iv-length)))
+         (cipher (ironclad:make-cipher ironclad-cipher
+                                       :key key
+                                       :mode mode
+                                       :initialization-vector iv)))
+    (ironclad:decrypt-in-place cipher encrypted)))
+
+(defun parse-private-key (text &key passphrase)
   "Parses an OpenSSH private key from the given plain-text string"
   (let* ((s (make-string-input-stream text))
          (extracted (extract-private-key s))
          (decoded (binascii:decode-base64 extracted))
          (stream (rfc4251:make-binary-input-stream decoded)))
-    (multiple-value-bind (key size) (rfc4251:decode :private-key stream)
+    (multiple-value-bind (key size) (rfc4251:decode :private-key stream :passphrase passphrase)
       (declare (ignore size))
       key)))
 
-;; TODO: Add support for encrypted keys
-(defun parse-private-key-file (path)
+(defun parse-private-key-file (path &key passphrase)
   "Parses an OpenSSH private key from the given path"
-  (parse-private-key (alexandria:read-file-into-string path)))
+  (parse-private-key (alexandria:read-file-into-string path)
+                     :passphrase passphrase))
