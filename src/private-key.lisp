@@ -65,12 +65,12 @@
     :documentation "Private key KDF name")
    (kdf-salt
     :initarg :kdf-salt
-    :initform nil
+    :initform (error "Must specify KDF salt")
     :accessor key-kdf-salt
     :documentation "Salt used by the KDF function")
    (kdf-rounds
     :initarg :kdf-rounds
-    :initform nil
+    :initform (error "Must specify KDF rounds")
     :accessor key-kdf-rounds
     :documentation "Number of iterations used to derive the key")
    (checksum-int
