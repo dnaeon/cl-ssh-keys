@@ -68,7 +68,8 @@
 
 (defmethod rfc4251:decode ((type (eql :rsa-private-key)) stream &key kind public-key
                                                                   cipher-name kdf-name
-                                                                  kdf-options checksum-int)
+                                                                  kdf-salt kdf-rounds
+                                                                  passphrase checksum-int)
   "Decodes an RSA private key from the given stream"
   (let* (n         ;; RSA modulus
          e         ;; RSA public exponent
@@ -114,8 +115,10 @@
                    :public-key public-key
                    :cipher-name cipher-name
                    :kdf-name kdf-name
-                   :kdf-options kdf-options
+                   :kdf-salt kdf-salt
+                   :kdf-rounds kdf-rounds
                    :checksum-int checksum-int
+                   :passphrase passphrase
                    :d d
                    :n n
                    :p p
@@ -143,12 +146,16 @@
   (with-slots (public-key) key
     (integer-length (ironclad:rsa-key-modulus public-key))))
 
-;; TODO: Add support for encrypted private keys
-(defmethod generate-key-pair ((kind (eql :rsa)) &key (num-bits 3072) comment)
+(defmethod generate-key-pair ((kind (eql :rsa)) &key
+                                                  (num-bits 3072)
+                                                  comment
+                                                  passphrase)
   "Generates a new pair of RSA public and private keys"
   (when (< num-bits 1024)
     (error 'unsupported-key-error :description "Minimum key length for RSA keys is 1024"))
-  (let* ((key-type (get-key-type-or-lose :ssh-rsa :by :id))
+  (let* ((cipher-name (if passphrase *default-cipher-name* "none"))
+         (kdf-name (if passphrase "bcrypt" "none"))
+         (key-type (get-key-type-or-lose :ssh-rsa :by :id))
          (checksum-int (ironclad:random-bits 32))
          (priv-pub-pair (multiple-value-list (ironclad:generate-key-pair :rsa :num-bits num-bits)))
          (ironclad-priv-key (first priv-pub-pair))
@@ -160,9 +167,9 @@
                                  :comment comment))
          (priv-key (make-instance 'rsa-private-key
                                   :public-key pub-key
-                                  :cipher-name "none"
-                                  :kdf-name "none"
-                                  :kdf-options #()
+                                  :cipher-name cipher-name
+                                  :kdf-name kdf-name
+                                  :passphrase passphrase
                                   :checksum-int checksum-int
                                   :kind key-type
                                   :comment comment
