@@ -56,11 +56,16 @@
     :initform (error "Must specify KDF name")
     :reader key-kdf-name
     :documentation "Private key KDF name")
-   (kdf-options
-    :initarg :kdf-options
-    :initform (error "Must specify KDF options")
-    :reader key-kdf-options
-    :documentation "Private key KDF options")
+   (kdf-salt
+    :initarg :kdf-salt
+    :initform nil
+    :accessor key-kdf-salt
+    :documentation "Salt used by the KDF function")
+   (kdf-rounds
+    :initarg :kdf-rounds
+    :initform nil
+    :accessor key-kdf-rounds
+    :documentation "Number of iterations used to derive the key")
    (checksum-int
     :initarg :checksum-int
     :initform (error "Must specify checksum integer")

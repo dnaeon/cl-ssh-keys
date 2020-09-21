@@ -95,7 +95,8 @@
    :embedded-public-key
    :key-cipher-name
    :key-kdf-name
-   :key-kdf-options
+   :key-kdf-salt
+   :key-kdf-rounds
    :key-checksum-int
    :extract-private-key
    :extract-private-key-from-file
