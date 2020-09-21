@@ -66,7 +66,7 @@
    (kdf-salt
     :initarg :kdf-salt
     :initform (error "Must specify KDF salt")
-    :accessor key-kdf-salt
+    :reader key-kdf-salt
     :documentation "Salt used by the KDF function")
    (kdf-rounds
     :initarg :kdf-rounds
@@ -173,11 +173,11 @@
     (when key-is-encrypted-p
       (unless passphrase
         (error 'base-error :description "Key is encrypted. Passphrase is required"))
-      (decrypt-private-section encrypted-buffer
-                               (getf cipher :name)
-                               (ironclad:ascii-string-to-byte-array passphrase)
-                               salt
-                               rounds))
+      (decrypt-private-key encrypted-buffer
+                           (getf cipher :name)
+                           (ironclad:ascii-string-to-byte-array passphrase)
+                           salt
+                           rounds))
 
     ;; Continue decoding the rest of the encrypted section, which by now should
     ;; be decrypted, if given a correct passphrase.
@@ -240,20 +240,36 @@
   "Encodes the private key in OpenSSH private key format"
   (let* ((tmp-stream (rfc4251:make-binary-output-stream)) ;; Temporary buffer to which we write
          (pub-key-stream (rfc4251:make-binary-output-stream))
+         (kdf-stream (rfc4251:make-binary-output-stream))
          (encrypted-stream (rfc4251:make-binary-output-stream))
          (key-type (key-kind key))
          (key-type-plain (getf key-type :plain-name))
          (key-id (getf key-type :id))
          (cipher (get-cipher-by-name-or-lose (key-cipher-name key)))
-         (cipher-blocksize (getf cipher :blocksize)))
+         (cipher-blocksize (getf cipher :blocksize))
+         encrypted-buffer)
     (unless cipher
       (error 'invalid-key-error
              :description "Invalid cipher name"))
 
     (rfc4251:encode :c-string +private-key-auth-magic+ tmp-stream) ;; AUTH_MAGIC header
     (rfc4251:encode :string (key-cipher-name key) tmp-stream)      ;; Cipher name
+
+    ;; KDF name and options.
     (rfc4251:encode :string (key-kdf-name key) tmp-stream)         ;; KDF name
-    (rfc4251:encode :buffer (key-kdf-options key) tmp-stream)      ;; KDF options
+
+    ;; The salt and rounds reside in a separate buffer,
+    ;; when the key is encoded. Encode salt and rounds, only
+    ;; if we are encrypting the private key with a passphrase.
+    (when (key-passphrase key)
+        (rfc4251:encode :buffer (key-kdf-salt key) kdf-stream)     ;; KDF salt
+        (rfc4251:encode :uint32 (key-kdf-rounds key) kdf-stream))  ;; KDF rounds
+
+    ;; Write out the KDF options buffer to the temp stream
+    (rfc4251:encode :buffer
+                    (rfc4251:get-binary-stream-bytes kdf-stream)
+                    tmp-stream)
+
     (rfc4251:encode :uint32 #x01 tmp-stream)                       ;; Number of keys
 
     ;; Public key buffer
@@ -291,8 +307,17 @@
           do
              (rfc4251:encode :byte i encrypted-stream))
 
-    ;; Write out the encrypted buffer
-    (rfc4251:encode :buffer (rfc4251:get-binary-stream-bytes encrypted-stream) tmp-stream)
+    ;; Write out the encrypted buffer, and optionally encrypt if we have a passphrase
+    (setf encrypted-buffer (rfc4251:get-binary-stream-bytes encrypted-stream))
+
+    (when (key-passphrase key)
+      (encrypt-private-key encrypted-buffer
+                           (key-cipher-name key)
+                           (ironclad:ascii-string-to-byte-array (key-passphrase key))
+                           (key-kdf-salt key)
+                           (key-kdf-rounds key)))
+
+    (rfc4251:encode :buffer encrypted-buffer tmp-stream)
 
     ;; Flush out the temp buffer
     (rfc4251:encode :raw-bytes (rfc4251:get-binary-stream-bytes tmp-stream) stream)))
