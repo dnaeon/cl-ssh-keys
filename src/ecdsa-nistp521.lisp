@@ -71,7 +71,8 @@
 
 (defmethod rfc4251:decode ((type (eql :ecdsa-nistp521-private-key)) stream &key kind public-key
                                                                              cipher-name kdf-name
-                                                                             kdf-options checksum-int)
+                                                                             kdf-salt kdf-rounds
+                                                                             passphrase checksum-int)
   "Decodes a ECDSA NIST P-521 private key from the given stream"
   (let* (identifier ;; Curve identifier
          d          ;; Private key
@@ -98,7 +99,9 @@
                    :public-key public-key
                    :cipher-name cipher-name
                    :kdf-name kdf-name
-                   :kdf-options kdf-options
+                   :kdf-salt kdf-salt
+                   :kdf-rounds kdf-rounds
+                   :passphrase passphrase
                    :checksum-int checksum-int
                    :identifier identifier
                    :y q
@@ -119,10 +122,11 @@
   (with-slots (public-key) key
     (key-bits public-key)))
 
-;; TODO: Add support for encrypted private keys
-(defmethod generate-key-pair ((kind (eql :ecdsa-nistp521)) &key comment)
+(defmethod generate-key-pair ((kind (eql :ecdsa-nistp521)) &key comment passphrase)
   "Generates a new pair of ECDSA NIST P-521 public and private keys"
-  (let* ((key-type (get-key-type-or-lose :ecdsa-sha2-nistp521 :by :id))
+  (let* ((cipher-name (if passphrase *default-cipher-name* "none"))
+         (kdf-name (if passphrase "bcrypt" "none"))
+         (key-type (get-key-type-or-lose :ecdsa-sha2-nistp521 :by :id))
          (checksum-int (ironclad:random-bits 32))
          (priv-pub-pair (multiple-value-list (ironclad:generate-key-pair :secp521r1)))
          (ironclad-priv-key (first priv-pub-pair))
@@ -152,9 +156,9 @@
                                  :y (rfc4251:get-binary-stream-bytes y-stream)))
          (priv-key (make-instance 'ecdsa-nistp521-private-key
                                   :public-key pub-key
-                                  :cipher-name "none"
-                                  :kdf-name "none"
-                                  :kdf-options #()
+                                  :cipher-name cipher-name
+                                  :kdf-name kdf-name
+                                  :passphrase passphrase
                                   :checksum-int checksum-int
                                   :kind key-type
                                   :comment comment
