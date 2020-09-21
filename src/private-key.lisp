@@ -70,7 +70,12 @@
     :initarg :checksum-int
     :initform (error "Must specify checksum integer")
     :reader key-checksum-int
-    :documentation "Checksum integer for private keys"))
+    :documentation "Checksum integer for private keys")
+   (passphrase
+    :initarg :passphrase
+    :initform nil
+    :accessor key-passphrase
+    :documentation "Passphrase used to encrypt the private key"))
   (:documentation "Base class for representing an OpenSSH private key"))
 
 (defclass base-ecdsa-nistp-private-key (base-ecdsa-nistp-key base-private-key)
@@ -194,6 +199,7 @@
                      :kdf-name kdf-name
                      :kdf-salt salt
                      :kdf-rounds rounds
+                     :passphrase passphrase
                      :checksum-int check-int-1))
 
     (setf priv-key

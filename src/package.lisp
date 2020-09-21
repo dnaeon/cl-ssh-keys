@@ -97,6 +97,7 @@
    :key-kdf-name
    :key-kdf-salt
    :key-kdf-rounds
+   :key-passphrase
    :key-checksum-int
    :extract-private-key
    :extract-private-key-from-file
