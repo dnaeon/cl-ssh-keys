@@ -25,6 +25,13 @@
 
 (in-package :cl-ssh-keys)
 
+(defparameter *default-kdf-rounds*
+  16
+  "Default number of iterations to use when deriving a key")
+
+(defconstant +kdf-salt-size+ 16
+  "Salt size in bytes")
+
 (alexandria:define-constant +private-key-auth-magic+
   "openssh-key-v1"
   :test #'equal

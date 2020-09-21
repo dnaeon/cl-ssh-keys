@@ -25,6 +25,10 @@
 
 (in-package :cl-ssh-keys)
 
+(defparameter *default-cipher-name*
+  "aes256-ctr"
+  "Default cipher to use when encrypting a private key")
+
 (defparameter *ciphers*
   '((:name "3des-cbc"
      :blocksize 8

@@ -75,6 +75,7 @@
 
    ;; ciphers
    :*ciphers*
+   :*default-cipher-name*
    :get-cipher-by-name
    :get-cipher-by-name-or-lose
 
@@ -87,6 +88,8 @@
    :with-public-key-file
 
    ;; private-key
+   :*default-kdf-rounds*
+   :+kdf-salt-size+
    :+private-key-auth-magic+
    :+private-key-mark-begin+
    :+private-key-mark-end+
