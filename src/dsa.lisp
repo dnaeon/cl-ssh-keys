@@ -119,7 +119,6 @@
   (with-slots (public-key) key
     (integer-length (ironclad:dsa-key-p public-key))))
 
-;; TODO: Add support for encrypted private keys
 (defmethod generate-key-pair ((kind (eql :dsa)) &key comment passphrase)
   "Generates a new pair of DSA public and private keys"
   (let* ((cipher-name (if passphrase *default-cipher-name* "none"))

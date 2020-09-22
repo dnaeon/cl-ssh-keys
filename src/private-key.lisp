@@ -235,7 +235,6 @@
 
     (values priv-key total)))
 
-;; TODO: Add support for encrypted keys
 (defmethod rfc4251:encode ((type (eql :private-key)) (key base-private-key) stream &key)
   "Encodes the private key in OpenSSH private key format"
   (let* ((tmp-stream (rfc4251:make-binary-output-stream)) ;; Temporary buffer to which we write
