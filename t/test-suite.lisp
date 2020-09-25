@@ -757,13 +757,13 @@
   (testing "with-private-key macro"
     (ok (expands '(ssh-keys:with-private-key (key "-----BEGIN OPENSSH PRIVATE KEY----- ...")
                    (ssh-keys:fingerprint :sha256 key))
-                 '(let ((key (ssh-keys:parse-private-key "-----BEGIN OPENSSH PRIVATE KEY----- ...")))
+                 '(let ((key (ssh-keys:parse-private-key "-----BEGIN OPENSSH PRIVATE KEY----- ..." :passphrase nil)))
                    (ssh-keys:fingerprint :sha256 key)))
         "Test WITH-PRIVATE-KEY macro expanding"))
   (testing "with-private-key-file macro"
     (ok (expands '(ssh-keys:with-private-key-file (key #P"id_rsa")
                    (ssh-keys:fingerprint :sha256 key))
-                 '(let ((key (ssh-keys:parse-private-key-file #P"id_rsa")))
+                 '(let ((key (ssh-keys:parse-private-key-file #P"id_rsa" :passphrase nil)))
                    (ssh-keys:fingerprint :sha256 key)))
         "Test WITH-PRIVATE-KEY-FILE macro expanding")))
 
