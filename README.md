@@ -366,6 +366,12 @@ CL-USER> (ssh-keys:generate-key-pair :ecdsa-nistp521)
 
 Tests are provided as part of the `cl-ssh-keys.test` system.
 
+The following Common Lisp implementations have been tested and are
+known to work.
+
+* [SBCL](http://www.sbcl.org)
+* [CCL](https://ccl.clozure.com)
+
 In order to run the tests you can evaluate the following expressions.
 
 ``` common-lisp
