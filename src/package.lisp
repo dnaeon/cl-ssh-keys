@@ -78,6 +78,7 @@
    :*default-cipher-name*
    :get-cipher-by-name
    :get-cipher-by-name-or-lose
+   :get-all-cipher-names
 
    ;; public-key
    :base-public-key

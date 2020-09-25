@@ -94,6 +94,10 @@
              :description (format nil "Unknown cipher name ~a" name)))
     cipher-info))
 
+(defun get-all-cipher-names ()
+  "Returns a list of all supported cipher names"
+  (mapcar (lambda (item) (getf item :name)) *ciphers*))
+
 (defun get-cipher-for-encryption/decryption (cipher-name passphrase salt rounds)
   "Returns a cipher that can be used for encryption/decryption of a private key"
   (declare (type (simple-array (unsigned-byte 8) (*))
