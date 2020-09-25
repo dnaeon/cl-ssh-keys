@@ -25,6 +25,10 @@
 
 (in-package :cl-ssh-keys)
 
+(defparameter *supported-kdf-names*
+  '("none" "bcrypt")
+  "Known and supported KDF names")
+
 (defparameter *default-kdf-rounds*
   16
   "Default number of iterations to use when deriving a key")
@@ -61,7 +65,7 @@
    (kdf-name
     :initarg :kdf-name
     :initform (error "Must specify KDF name")
-    :reader key-kdf-name
+    :accessor key-kdf-name
     :documentation "Private key KDF name")
    (kdf-salt
     :initarg :kdf-salt
@@ -84,6 +88,33 @@
     :accessor key-passphrase
     :documentation "Passphrase used to encrypt the private key"))
   (:documentation "Base class for representing an OpenSSH private key"))
+
+(defmethod (setf key-kdf-name) :before (new-value (key base-private-key))
+  "Set KDF name for the private key"
+  (unless (member new-value *supported-kdf-names* :test #'string=)
+    (error 'base-error :description "Invalid KDF name")))
+
+(defmethod (setf key-cipher-name) :before (new-value (key base-private-key))
+  "Set cipher name to use for encryption of the private key"
+  (unless (member new-value (get-all-cipher-names) :test #'string=)
+    (error 'base-error :description "Invalid cipher name")))
+
+(defmethod (setf key-passphrase) :before (new-value (key base-private-key))
+  "Reset or remove passphrase for the private key.
+If NIL is provided then encryption will be removed for the private key."
+  (etypecase new-value
+    ;; Remove passphrase from the key, if passphrase is nil
+    (null
+     (setf (key-cipher-name key) "none")
+     (setf (key-kdf-name key) "none"))
+    ;; Setup cipher name and KDF name, if not already
+    ;; set when changing passphrase.
+    (string
+     (with-accessors ((cipher key-cipher-name) (kdf key-kdf-name)) key
+       (when (string= cipher "none")
+         (setf cipher *default-cipher-name*))
+       (when (string= kdf "none")
+         (setf kdf "bcrypt"))))))
 
 (defclass base-ecdsa-nistp-private-key (base-ecdsa-nistp-key base-private-key)
   ()
