@@ -56,6 +56,7 @@
    :key-comment
    :base-ecdsa-nistp-key
    :ecdsa-curve-identifier
+   :write-key-to-path
 
    ;; conditions
    :invalid-public-key-error
@@ -176,3 +177,8 @@
     :reader ecdsa-curve-identifier
     :documentation "Identifier of the elliptic curve domain parameters"))
   (:documentation "Base class for representing an OpenSSH ECDSA key"))
+
+(defun write-key-to-path (key path)
+  "Writes the given KEY to the destination PATH"
+  (with-open-file (out path :direction :output)
+    (write-key key out)))
