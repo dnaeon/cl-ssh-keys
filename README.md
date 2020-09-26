@@ -169,7 +169,7 @@ the filesystem.
 ``` common-lisp
 CL-USER> (ssh-keys:with-private-key-file (key #P"~/.ssh/id_rsa" :passphrase "OLD-PASSPHRASE")
            (setf (ssh-keys:key-passphrase key) "MY-NEW-PASSPHRASE")
-           (ssh-keys:write-key-to-pathkey #P"~/.id_rsa-new-passphrase"))
+           (ssh-keys:write-key-to-path key #P"~/.id_rsa-new-passphrase"))
 ```
 
 ### Setting passphrase for an existing un-encrypted key
@@ -181,7 +181,7 @@ e.g.
 ``` common-lisp
 CL-USER> (ssh-keys:with-private-key-file (key #P"~/.ssh/id_rsa")
            (setf (ssh-keys:key-passphrase key) "my-secret-password")
-           (ssh-keys:write-key-to-pathkey #P"~/.id_rsa-encrypted"))
+           (ssh-keys:write-key-to-path key #P"~/.id_rsa-encrypted"))
 ```
 
 ### Removing passphrase of an encrypted key
@@ -192,14 +192,14 @@ un-encrypted by setting the passphrase to `nil`.
 ``` common-lisp
 CL-USER> (ssh-keys:with-private-key-file (key #P"~/.ssh/id_rsa" :passphrase "PASSPHRASE")
            (setf (ssh-keys:key-passphrase key) nil)
-           (ssh-keys:write-key-to-pathkey #P"~/.id_rsa-unencrypted"))
+           (ssh-keys:write-key-to-path key #P"~/.id_rsa-unencrypted"))
 ```
 
 ### Changing the cipher of an encrypted key
 
-The cipher to be used for encryption of a private key be set by using
-the `SSH-KEYS:KEY-CIPHER-NAME` accessor. The value should be one of
-the known and supported ciphers as returned by
+The cipher to be used for encryption of a private key can be set by
+using the `SSH-KEYS:KEY-CIPHER-NAME` accessor. The value should be one
+of the known and supported ciphers as returned by
 `SSH-KEYS:GET-ALL-CIPHER-NAMES`.
 
 First, list the known cipher names.
@@ -214,7 +214,7 @@ Then set a new cipher.
 ``` common-lisp
 CL-USER> (ssh-keys:with-private-key-file (key #P"~/.ssh/id_rsa" :passphrase "PASSPHRASE")
            (setf (ssh-keys:key-cipher-name key) "3des-cbc")
-           (ssh-keys:write-key-to-pathkey #P"~/.id_rsa-3des-cbc"))
+           (ssh-keys:write-key-to-path key #P"~/.id_rsa-3des-cbc"))
 ```
 
 ### Changing the KDF number of iterations
@@ -227,7 +227,7 @@ attacks.
 ``` common-lisp
 CL-USER> (ssh-keys:with-private-key-file (key #P"~/.ssh/id_rsa" :passphrase "PASSPHRASE")
            (setf (ssh-keys:key-kdf-rounds key) 32)
-           (ssh-keys:write-key-to-pathkey #P"~/.id_rsa-stronger"))
+           (ssh-keys:write-key-to-path key #P"~/.id_rsa-stronger"))
 ```
 
 ### Fingerprints
