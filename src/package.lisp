@@ -58,10 +58,21 @@
    :ecdsa-curve-identifier
    :write-key-to-path
 
+   ;; rfc8017
+   :*emsa-pkcs1-v1_5-digest-info*
+   :i2osp
+   :os2ip
+   :rsasp1
+   :rsavp1
+   :emsa-pkcs1-v1_5-encode
+   :rsassa-pkcs1-v1_5-sign
+   :rsassa-pkcs1-v1_5-verify
+
    ;; conditions
    :invalid-public-key-error
    :key-type-mismatch-error
    :unsupported-key-error
+   :invalid-signature-error
 
    ;; generics
    :fingerprint

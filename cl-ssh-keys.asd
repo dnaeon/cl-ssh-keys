@@ -23,6 +23,7 @@
   :components ((:module "core"
                 :pathname #P"src/"
                 :components ((:file "package")
+                             (:file "rfc8017")
                              (:file "generics" :depends-on ("package"))
                              (:file "public-key" :depends-on ("package"))
                              (:file "private-key" :depends-on ("package"))
