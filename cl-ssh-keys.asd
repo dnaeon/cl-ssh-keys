@@ -38,5 +38,6 @@
                              (:file "ed25519")
                              (:file "ecdsa-nistp256")
                              (:file "ecdsa-nistp384")
-                             (:file "ecdsa-nistp521"))))
+                             (:file "ecdsa-nistp521")
+                             (:file "cert-key"))))
   :in-order-to ((test-op (test-op "cl-ssh-keys.test"))))
