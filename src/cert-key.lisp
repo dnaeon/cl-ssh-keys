@@ -124,3 +124,68 @@ problem."
           :collect value :into result
           :while (< total length)
           :finally (return (values result (+ header-size total))))))
+
+(defclass certificate (base-key)
+  ((nonce
+    :initarg :nonce
+    :initform (error "Must provide nonce")
+    :accessor cert-nonce
+    :documentation "CA-provided nonce")
+   (key
+    :initarg :key
+    :initform (error "Must specify certificate public key")
+    :reader cert-key
+    :documentation "The public key of the user/host")
+   (serial
+    :initarg :serial
+    :initform 0
+    :accessor cert-serial
+    :documentation "Optional certificate serial number set by the CA")
+   (type
+    :initarg :type
+    :initform (error "Must specify certificate type")
+    :accessor cert-type
+    :documentation "Certificate type. Must be either +SSH-CERT-TYPE-USER+ or +SSH-CERT-TYPE-HOST+")
+   (key-id
+    :initarg :key-id
+    :initform nil
+    :accessor cert-key-id
+    :documentation "Key identity filled in by the CA at the time of signing")
+   (valid-principals
+    :initarg :valid-principals
+    :initform nil
+    :accessor cert-valid-principals
+    :documentation "List of usernames/hostnames for which this certificate is valid")
+   (valid-after
+    :initarg :valid-after
+    :initform 0
+    :accessor cert-valid-after
+    :documentation "The validity period after which the certificate is valid")
+   (valid-before
+    :initarg :valid-before
+    :initform +ssh-cert-max-valid-to+
+    :accessor cert-valid-before
+    :documentation "The validity period before which the certificate is valid")
+   (critical-options
+    :initarg :critical-options
+    :initform nil
+    :accessor cert-critical-options
+    :documentation "Certificate critical options")
+   (extensions
+    :initarg :extensions
+    :initform nil
+    :accessor cert-extensions
+    :documentation "Certificate extensions")
+   (reserved
+    :initform nil
+    :reader cert-reserved
+    :documentation "Currently unused and ignored in this version of the protocol")
+   (signature-key
+    :initarg :signature-key
+    :initform (error "Must specify signature key")
+    :documentation "The public key of the CA that signed the certificate")
+   (signature
+    :initarg :signature
+    :initform (error "Must specify signature")
+    :documentation "The certificate signature"))
+  (:documentation "An OpenSSH certificate key"))
