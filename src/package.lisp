@@ -165,7 +165,15 @@
    :ecdsa-nistp521-public-key
    :ecdsa-nistp521-private-key
    :secp521r1-key-y   ;; Re-export from ironclad
-   :secp521r1-key-x)) ;; Re-export from ironclad
+   :secp521r1-key-x   ;; Re-export from ironclad
+
+   ;; cert-key
+   :+ssh-cert-type-user+
+   :+ssh-cert-type-host+
+   :+ssh-cert-max-valid-to+
+   :describe-cert-option
+   :get-supported-cert-options
+   :get-cert-critical-options))
 (in-package :cl-ssh-keys)
 
 (defclass base-key ()
