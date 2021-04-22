@@ -101,6 +101,12 @@
             (getf option :name))
           *ssh-cert-options*))
 
+(defun get-cert-critical-options ()
+  "Returns the list of certificate critical options"
+  (remove-if-not (lambda (item)
+                   (getf item :is-critical))
+                 *ssh-cert-options*))
+
 (defmethod rfc4251:decode ((type (eql :ssh-cert-embedded-strings)) stream &key)
   "Decode a list of embedded strings from an OpenSSH certificate key.
 
@@ -110,11 +116,11 @@ it makes you wonder why not using the `name-list` data type from RFC
 4251, section 5 instead, since `name-list` solves this particular
 problem."
   (let ((header-size 4)  ;; uint32 specifying the buffer size
-        (length (rfc4251:decode :uint32 stream))) ;; Number of bytes representing the buffer
+        (length (rfc4251:decode :uint32 stream)))  ;; Number of bytes representing the buffer
     (when (zerop length)
       (return-from rfc4251:decode (values nil header-size)))
-    (loop for (value size) = (multiple-value-list (rfc4251:decode :string stream))
+    (loop :for (value size) = (multiple-value-list (rfc4251:decode :string stream))
           :summing size :into total
           :collect value :into result
           :while (< total length)
-          :finally (return (values result (+ header-size length))))))
+          :finally (return (values result (+ header-size total))))))
