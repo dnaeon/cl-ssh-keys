@@ -125,6 +125,42 @@ problem."
           :while (< total length)
           :finally (return (values result (+ header-size total))))))
 
+(defmethod rfc4251:decode ((type (eql :ssh-cert-critical-options)) stream &key)
+  "Decode OpenSSH certificate critical options.
+
+Please refer to [1] for more details.
+
+[1]: https://cvsweb.openbsd.org/src/usr.bin/ssh/PROTOCOL.certkeys"
+  (let ((header-size 4)  ;; uint32 specifying the buffer size
+        (length (rfc4251:decode :uint32 stream)))  ;; Number of bytes representing the options data
+    (when (zerop length)
+      (return-from rfc4251:decode (values nil header-size)))
+    (loop :for (name name-size) = (multiple-value-list (rfc4251:decode :string stream))
+          :for (data data-size) = (multiple-value-list (rfc4251:decode :ssh-cert-embedded-strings stream))
+          :summing name-size :into total
+          :summing data-size :into total
+          :collect (cons name data) :into result
+          :while (< total length)
+          :finally (return (values result (+ header-size total))))))
+
+(defmethod rfc4251:decode ((type (eql :ssh-cert-extensions)) stream &key)
+  "Decode OpenSSH certificate extensions.
+
+Please refer to [1] for more details.
+
+[1]: https://cvsweb.openbsd.org/src/usr.bin/ssh/PROTOCOL.certkeys"
+  (let ((header-size 4)  ;; uint32 specifying the buffer size
+        (length (rfc4251:decode :uint32 stream)))  ;; Number of bytes representing the options data
+    (when (zerop length)
+      (return-from rfc4251:decode (values nil header-size)))
+    (loop :for (name name-size) = (multiple-value-list (rfc4251:decode :string stream))
+          :for (nil data-size) = (multiple-value-list (rfc4251:decode :ssh-cert-embedded-strings stream))
+          :summing name-size :into total
+          :summing data-size :into total
+          :collect name :into result
+          :while (< total length)
+          :finally (return (values result (+ header-size total))))))
+
 (defclass certificate (base-key)
   ((nonce
     :initarg :nonce
