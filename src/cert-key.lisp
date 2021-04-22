@@ -61,7 +61,8 @@
     (:name "permit-X11-forwarding"
      :description ,(format nil "Flag indicating that X11 forwarding ~
                                 should be permitted. X11 forwarding will ~
-                                be refused if this option is absent."))
+                                be refused if this option is absent.")
+     :is-critical nil)
     (:name "permit-agent-forwarding"
      :description ,(format nil "Flag indicating that agent forwarding should be ~
                                 allowed. Agent forwarding must not be permitted ~
