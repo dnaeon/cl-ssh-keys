@@ -31,6 +31,9 @@
 (defconstant +ssh-cert-type-host+ 2
   "Indicates a host certificate")
 
+(defconstant +ssh-cert-max-valid-to+ (1- (expt 2 64))
+  "Max expiry date for a certificate")
+
 (defparameter *ssh-cert-options*
   `((:name "force-command"
      :description ,(format nil "Specifies a command that is executed ~
