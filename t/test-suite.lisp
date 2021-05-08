@@ -1067,3 +1067,25 @@
     (ok (signals (ssh-keys:parse-private-key-file (get-test-key-path #P"id_ed25519_encrypted_aes256-ctr")
                                                   :passphrase "wrong-passphrase"))
         "Bad passphrase for encrypted (aes256-ctr) private key")))
+
+(deftest cert-keys
+  (testing "encode non-empty list of :ssh-cert-valid-principals"
+    (let* ((data '("root" "john.doe"))
+           (s (rfc4251:make-binary-output-stream))
+           (size (rfc4251:encode :ssh-cert-valid-principals data s))
+           (encoded (rfc4251:get-binary-stream-bytes s)))
+      (ok (= size 24)
+          "Number of encoded bytes matches")
+      (ok (equalp encoded
+                  #(#x00 #x00 #x00 #x14 #x00 #x00 #x00 #x04 #x72 #x6F #x6F #x74 #x00 #x00 #x00 #x08 #x6A #x6F #x68 #x6E #x2E #x64 #x6F #x65))
+          "Encoded bytes match")))
+
+  (testing "encode empty list of :ssh-cert-valid-principals"
+    (let* ((data (list))
+           (s (rfc4251:make-binary-output-stream))
+           (size (rfc4251:encode :ssh-cert-valid-principals data s))
+           (encoded (rfc4251:get-binary-stream-bytes s)))
+      (ok (= size 4)
+          "Number of encoded bytes matches")
+      (ok (equalp encoded #(#x00 #x00 #x00 #x00))
+          "Encoded bytes match"))))
