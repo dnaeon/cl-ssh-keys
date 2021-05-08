@@ -143,12 +143,27 @@ Please refer to [1] for more details.
     (when (zerop length)
       (return-from rfc4251:decode (values nil header-size)))
     (loop :for (name name-size) = (multiple-value-list (rfc4251:decode :string stream))
-          :for (data data-size) = (multiple-value-list (rfc4251:decode :ssh-cert-embedded-strings stream))
+          ;; The data is packed inside another string buffer
+          :for (buffer buffer-size) = (multiple-value-list (rfc4251:decode :buffer stream))
+          :for data-stream = (rfc4251:make-binary-input-stream buffer)
+          :for data = (rfc4251:decode :string data-stream)
           :summing name-size :into total
-          :summing data-size :into total
-          :collect (cons name data) :into result
+          :summing buffer-size :into total
+          :collect (list name data) :into result
           :while (< total length)
           :finally (return (values result (+ header-size total))))))
+
+(defmethod rfc4251:encode ((type (eql :ssh-cert-critical-options)) value stream &key)
+  "Encode OpenSSH certificate critical options list.
+Each item in VALUE should be represented as a list of (OPTION-NAME OPTION-VALUE)"
+  (let ((s (rfc4251:make-binary-output-stream))) ;; Use a temp stream and encode it as a whole once ready
+    (loop :for (option-name option-value) :in value :do
+      (rfc4251:encode :string option-name s)
+      ;; The option-value is packed inside a buffer
+      (rfc4251:with-binary-output-stream (option-s)
+        (rfc4251:encode :string option-value option-s)
+        (rfc4251:encode :buffer (rfc4251:get-binary-stream-bytes option-s) s)))
+    (rfc4251:encode :buffer (rfc4251:get-binary-stream-bytes s) stream)))
 
 (defmethod rfc4251:decode ((type (eql :ssh-cert-extensions)) stream &key)
   "Decode OpenSSH certificate extensions.
@@ -161,12 +176,25 @@ Please refer to [1] for more details.
     (when (zerop length)
       (return-from rfc4251:decode (values nil header-size)))
     (loop :for (name name-size) = (multiple-value-list (rfc4251:decode :string stream))
-          :for (nil data-size) = (multiple-value-list (rfc4251:decode :ssh-cert-embedded-strings stream))
+          :for (nil data-size) = (multiple-value-list (rfc4251:decode :string stream))
           :summing name-size :into total
           :summing data-size :into total
           :collect name :into result
           :while (< total length)
           :finally (return (values result (+ header-size total))))))
+
+(defmethod rfc4251:encode ((type (eql :ssh-cert-extensions)) value stream &key)
+  "Encodes a list of OpenSSH certificate extensions
+
+Please refer to [1] for more details.
+
+[1]: https://cvsweb.openbsd.org/src/usr.bin/ssh/PROTOCOL.certkeys"
+  (let ((s (rfc4251:make-binary-output-stream)))
+    (loop :for name :in value :do
+      (rfc4251:encode :string name s)
+      ;; Extensions are flags only, so no data is associated with them
+      (rfc4251:encode :string "" s))
+    (rfc4251:encode :buffer (rfc4251:get-binary-stream-bytes s) stream)))
 
 (defclass certificate (base-key)
   ((nonce
