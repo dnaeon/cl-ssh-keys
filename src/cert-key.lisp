@@ -107,8 +107,8 @@
                    (getf item :is-critical))
                  *ssh-cert-options*))
 
-(defmethod rfc4251:decode ((type (eql :ssh-cert-embedded-strings)) stream &key)
-  "Decode a list of embedded strings from an OpenSSH certificate key.
+(defmethod rfc4251:decode ((type (eql :ssh-cert-valid-principals)) stream &key)
+  "Decode the list of valid principals from an OpenSSH certificate key.
 
 The OpenSSH certificate format encodes the list of `valid principals`
 as a list of strings embedded within a buffer. While this seems okay
@@ -124,6 +124,13 @@ problem."
           :collect value :into result
           :while (< total length)
           :finally (return (values result (+ header-size total))))))
+
+(defmethod rfc4251:encode ((type (eql :ssh-cert-valid-principals)) value stream &key)
+  "Encode a list of valid principals into an OpenSSH certificate key"
+  (let ((s (rfc4251:make-binary-output-stream)))
+    (loop :for item :in value :do
+      (rfc4251:encode :string item s))
+    (rfc4251:encode :buffer (rfc4251:get-binary-stream-bytes s) stream)))
 
 (defmethod rfc4251:decode ((type (eql :ssh-cert-critical-options)) stream &key)
   "Decode OpenSSH certificate critical options.
