@@ -1069,7 +1069,7 @@
         "Bad passphrase for encrypted (aes256-ctr) private key")))
 
 (deftest cert-keys
-  (testing "encode non-empty list of :ssh-cert-valid-principals"
+  (testing "encode :ssh-cert-valid-principals -- non-empty list"
     (let* ((data '("root" "john.doe"))
            (s (rfc4251:make-binary-output-stream))
            (size (rfc4251:encode :ssh-cert-valid-principals data s))
@@ -1080,7 +1080,14 @@
                   #(#x00 #x00 #x00 #x14 #x00 #x00 #x00 #x04 #x72 #x6F #x6F #x74 #x00 #x00 #x00 #x08 #x6A #x6F #x68 #x6E #x2E #x64 #x6F #x65))
           "Encoded bytes match")))
 
-  (testing "encode empty list of :ssh-cert-valid-principals"
+  (testing "decode :ssh-cert-valid-principals -- non-empty value"
+    (let* ((data #(#x00 #x00 #x00 #x0C #x00 #x00 #x00 #x08 #x6A #x6F #x68 #x6E #x2E #x64 #x6F #x65))
+           (s (rfc4251:make-binary-input-stream data)))
+      (ok (equal '(("john.doe") 16)
+                 (multiple-value-list (rfc4251:decode :ssh-cert-valid-principals s)))
+          "Decode non-empty valid principals")))
+
+  (testing "encode :ssh-cert-valid-principals -- empty list"
     (let* ((data (list))
            (s (rfc4251:make-binary-output-stream))
            (size (rfc4251:encode :ssh-cert-valid-principals data s))
@@ -1088,4 +1095,11 @@
       (ok (= size 4)
           "Number of encoded bytes matches")
       (ok (equalp encoded #(#x00 #x00 #x00 #x00))
-          "Encoded bytes match"))))
+          "Encoded bytes match")))
+
+  (testing "decode :ssh-cert-valid-principals -- empty list"
+    (let* ((data #(#x00 #x00 #x00 #x00))
+           (s (rfc4251:make-binary-input-stream data)))
+      (ok (equal '(nil 4)
+                 (multiple-value-list (rfc4251:decode :ssh-cert-valid-principals s)))
+          "Decode empty list of valid principals"))))
