@@ -1068,7 +1068,7 @@
                                                   :passphrase "wrong-passphrase"))
         "Bad passphrase for encrypted (aes256-ctr) private key")))
 
-(deftest cert-keys
+(deftest ssh-cert-valid-principals
   (testing "encode :ssh-cert-valid-principals -- non-empty list"
     (let* ((data '("root" "john.doe"))
            (s (rfc4251:make-binary-output-stream))
@@ -1103,3 +1103,57 @@
       (ok (equal '(nil 4)
                  (multiple-value-list (rfc4251:decode :ssh-cert-valid-principals s)))
           "Decode empty list of valid principals"))))
+
+(deftest ssh-cert-critical-options
+  (testing "encode :ssh-cert-critical-options -- non-empty value"
+    (let ((s (rfc4251:make-binary-output-stream))
+          (options '(("source-address" . "127.0.0.1/32,10.0.0.0/8")))
+          (want-bytes #(#x00 #x00 #x00 #x31 #x00 #x00 #x00 #x0E
+                       #x73 #x6F #x75 #x72 #x63 #x65 #x2D #x61
+                       #x64 #x64 #x72 #x65 #x73 #x73 #x00 #x00
+                       #x00 #x1B #x00 #x00 #x00 #x17 #x31 #x32
+                       #x37 #x2E #x30 #x2E #x30 #x2E #x31 #x2F
+                       #x33 #x32 #x2C #x31 #x30 #x2E #x30 #x2E
+                       #x30 #x2E #x30 #x2F #x38))
+          (want-size 53))
+      (ok (= want-size (rfc4251:encode :ssh-cert-critical-options options s))
+          "Encoded number of bytes match")
+      (ok (equalp want-bytes (rfc4251:get-binary-stream-bytes s))
+          "Encoded bytes match")))
+
+  (testing "decode :ssh-cert-critical-options -- non-empty value"
+    (let* ((data #(#x00 #x00 #x00 #x51 #x00 #x00 #x00
+                  #x0D #x66 #x6F #x72 #x63 #x65 #x2D
+                  #x63 #x6F #x6D #x6D #x61 #x6E #x64
+                  #x00 #x00 #x00 #x0B #x00 #x00 #x00
+                  #x07 #x2F #x62 #x69 #x6E #x2F #x73
+                  #x68 #x00 #x00 #x00 #x0E #x73 #x6F
+                  #x75 #x72 #x63 #x65 #x2D #x61 #x64
+                  #x64 #x72 #x65 #x73 #x73 #x00 #x00
+                  #x00 #x1B #x00 #x00 #x00 #x17 #x31
+                  #x32 #x37 #x2E #x30 #x2E #x30 #x2E
+                  #x31 #x2F #x33 #x32 #x2C #x31 #x30
+                  #x2E #x30 #x2E #x30 #x2E #x30 #x2F #x38))
+           (s (rfc4251:make-binary-input-stream data))
+           (want-size 85)
+           (want-data '(("force-command" . "/bin/sh")
+                        ("source-address" . "127.0.0.1/32,10.0.0.0/8"))))
+      (ok (equalp (list want-data want-size)
+                  (multiple-value-list (rfc4251:decode :ssh-cert-critical-options s)))
+          "Decoded data matches")))
+
+  (testing "encode :ssh-cert-critical-options -- empty value"
+    (let ((s (rfc4251:make-binary-output-stream))
+          (want-size 4)
+          (want-bytes #(#x00 #x00 #x00 #x00)))
+      (ok (= want-size (rfc4251:encode :ssh-cert-critical-options nil s))
+          "Encoded number of bytes matches")
+      (ok (equalp want-bytes (rfc4251:get-binary-stream-bytes s))
+          "Encoded bytes match")))
+
+  (testing "decode :ssh-cert-critical-options -- empty value"
+    (let* ((data #(#x00 #x00 #x00 #x00))
+           (s (rfc4251:make-binary-input-stream data)))
+      (ok (equal '(nil 4)
+                 (multiple-value-list (rfc4251:decode :ssh-cert-critical-options s)))
+          "Decoded data matches"))))

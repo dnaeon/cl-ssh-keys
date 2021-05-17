@@ -149,15 +149,16 @@ Please refer to [1] for more details.
           :for data = (rfc4251:decode :string data-stream)
           :summing name-size :into total
           :summing buffer-size :into total
-          :collect (list name data) :into result
+          :collect (cons name data) :into result
           :while (< total length)
           :finally (return (values result (+ header-size total))))))
 
 (defmethod rfc4251:encode ((type (eql :ssh-cert-critical-options)) value stream &key)
   "Encode OpenSSH certificate critical options list.
-Each item in VALUE should be represented as a list of (OPTION-NAME OPTION-VALUE)"
+VALUE is a list a of cons cells, each representing a
+critical option, e.g. (OPTION-NAME . OPTION-VALUE)."
   (let ((s (rfc4251:make-binary-output-stream))) ;; Use a temp stream and encode it as a whole once ready
-    (loop :for (option-name option-value) :in value :do
+    (loop :for (option-name . option-value) :in value :do
       (rfc4251:encode :string option-name s)
       ;; The option-value is packed inside a buffer
       (rfc4251:with-binary-output-stream (option-s)
