@@ -1157,3 +1157,83 @@
       (ok (equal '(nil 4)
                  (multiple-value-list (rfc4251:decode :ssh-cert-critical-options s)))
           "Decoded data matches"))))
+
+(deftest ssh-cert-extensions
+  (testing "encode :ssh-cert-extensions -- non-empty value"
+    (let* ((s (rfc4251:make-binary-output-stream))
+           (extensions '("permit-X11-forwarding"
+                         "permit-agent-forwarding"
+                         "permit-port-forwarding"
+                         "permit-pty"
+                         "permit-user-rc"))
+           (want-data #(#x00 #x00 #x00 #x82 #x00 #x00 #x00
+                       #x15 #x70 #x65 #x72 #x6D #x69 #x74
+                       #x2D #x58 #x31 #x31 #x2D #x66 #x6F
+                       #x72 #x77 #x61 #x72 #x64 #x69 #x6E
+                       #x67 #x00 #x00 #x00 #x00 #x00 #x00
+                       #x00 #x17 #x70 #x65 #x72 #x6D #x69
+                       #x74 #x2D #x61 #x67 #x65 #x6E #x74
+                       #x2D #x66 #x6F #x72 #x77 #x61 #x72
+                       #x64 #x69 #x6E #x67 #x00 #x00 #x00
+                       #x00 #x00 #x00 #x00 #x16 #x70 #x65
+                       #x72 #x6D #x69 #x74 #x2D #x70 #x6F
+                       #x72 #x74 #x2D #x66 #x6F #x72 #x77
+                       #x61 #x72 #x64 #x69 #x6E #x67 #x00
+                       #x00 #x00 #x00 #x00 #x00 #x00 #x0A
+                       #x70 #x65 #x72 #x6D #x69 #x74 #x2D
+                       #x70 #x74 #x79 #x00 #x00 #x00 #x00
+                       #x00 #x00 #x00 #x0E #x70 #x65 #x72
+                       #x6D #x69 #x74 #x2D #x75 #x73 #x65
+                       #x72 #x2D #x72 #x63 #x00 #x00 #x00 #x00))
+           (want-size 134))
+      (ok (= want-size (rfc4251:encode :ssh-cert-extensions extensions s))
+          "Encoded number of bytes match")
+      (ok (equalp want-data (rfc4251:get-binary-stream-bytes s))
+          "Encoded bytes match")))
+
+  (testing "decode :ssh-cert-extensions -- non-empty value"
+    (let* ((data #(#x00 #x00 #x00 #x82 #x00 #x00 #x00
+                  #x15 #x70 #x65 #x72 #x6D #x69 #x74
+                  #x2D #x58 #x31 #x31 #x2D #x66 #x6F
+                  #x72 #x77 #x61 #x72 #x64 #x69 #x6E
+                  #x67 #x00 #x00 #x00 #x00 #x00 #x00
+                  #x00 #x17 #x70 #x65 #x72 #x6D #x69
+                  #x74 #x2D #x61 #x67 #x65 #x6E #x74
+                  #x2D #x66 #x6F #x72 #x77 #x61 #x72
+                  #x64 #x69 #x6E #x67 #x00 #x00 #x00
+                  #x00 #x00 #x00 #x00 #x16 #x70 #x65
+                  #x72 #x6D #x69 #x74 #x2D #x70 #x6F
+                  #x72 #x74 #x2D #x66 #x6F #x72 #x77
+                  #x61 #x72 #x64 #x69 #x6E #x67 #x00
+                  #x00 #x00 #x00 #x00 #x00 #x00 #x0A
+                  #x70 #x65 #x72 #x6D #x69 #x74 #x2D
+                  #x70 #x74 #x79 #x00 #x00 #x00 #x00
+                  #x00 #x00 #x00 #x0E #x70 #x65 #x72
+                  #x6D #x69 #x74 #x2D #x75 #x73 #x65
+                  #x72 #x2D #x72 #x63 #x00 #x00 #x00 #x00))
+           (s (rfc4251:make-binary-input-stream data))
+           (want-extensions '("permit-X11-forwarding"
+                              "permit-agent-forwarding"
+                              "permit-port-forwarding"
+                              "permit-pty"
+                              "permit-user-rc"))
+           (want-size 134))
+      (ok (equal (list want-extensions want-size)
+                 (multiple-value-list (rfc4251:decode :ssh-cert-extensions s)))
+          "Decoded data matches")))
+
+  (testing "encode :ssh-cert-extensions -- empty value"
+    (let ((s (rfc4251:make-binary-output-stream))
+          (want-bytes #(#x00 #x00 #x00 #x00))
+          (want-size 4))
+      (ok (= want-size (rfc4251:encode :ssh-cert-extensions nil s))
+          "Encoded number of bytes match")
+      (ok (equalp want-bytes (rfc4251:get-binary-stream-bytes s))
+          "Encoded bytes match")))
+
+  (testing "decode :ssh-cert-extensions -- empty value"
+    (let* ((data #(#x00 #x00 #x00 #x00))
+           (s (rfc4251:make-binary-input-stream data)))
+      (ok (equal '(nil 4)
+                 (multiple-value-list (rfc4251:decode :ssh-cert-extensions s)))
+          "Decoded data matches"))))
