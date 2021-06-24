@@ -299,14 +299,135 @@ Please refer to [1] for more details.
     :documentation "Certificate extensions")
    (reserved
     :initform nil
+    :initarg :reserved
     :reader cert-reserved
     :documentation "Currently unused and ignored in this version of the protocol")
    (signature-key
     :initarg :signature-key
     :initform (error "Must specify signature key")
+    :accessor cert-signature-key
     :documentation "The public key of the CA that signed the certificate")
    (signature
     :initarg :signature
+    :accessor cert-signature
     :initform (error "Must specify signature")
     :documentation "The certificate signature"))
   (:documentation "An OpenSSH certificate key"))
+
+(defmethod rfc4251:decode ((type (eql :ssh-cert-key)) stream &key kind comment)
+  "Decodes an OpenSSH certificate key from the given stream"
+  (let ((client-pk-plain-name (getf kind :plain-name))
+	(total 0)  ;; Total bytes read from the stream
+	nonce
+	client-pk  ;; Client public key
+	serial  ;; Certificate serial number
+	cert-key-type  ;; Cert key type (user or host key)
+	key-identity
+	valid-principals
+	valid-after
+	valid-before
+	critical-options
+	extensions
+	reserved
+	signature-key
+	signature)
+    ;; Nonce
+    (multiple-value-bind (value size) (rfc4251:decode :buffer stream)
+      ;; nonce should be 16 or 32 bytes in size
+      (unless (or (= 16 (length value)) (= 32 (length value)))
+	(error 'invalid-key-error
+	       :description "nonce should be 16 or 32 bytes"))
+      (incf total size)
+      (setf nonce value))
+
+    ;; Client public key
+    (multiple-value-bind (value size)
+	(rfc4251:decode :public-key stream :key-type-name client-pk-plain-name :comment comment)
+      (incf total size)
+      (setf client-pk value))
+
+    ;; Serial
+    (multiple-value-bind (value size) (rfc4251:decode :uint64 stream)
+      (incf total size)
+      (setf serial value))
+
+    ;; Cert key type (user or host)
+    (multiple-value-bind (value size) (rfc4251:decode :uint32 stream)
+      (unless (member value (list +ssh-cert-type-user+ +ssh-cert-type-host+))
+	(error 'invalid-key-error
+	       :description "invalid cert key type"))
+      (incf total size)
+      (setf cert-key-type value))
+
+    ;; Cert key identity
+    (multiple-value-bind (value size) (rfc4251:decode :string stream)
+      (incf total size)
+      (setf key-identity value))
+
+    ;; Valid principals
+    (multiple-value-bind (value size) (rfc4251:decode :ssh-cert-valid-principals stream)
+      (incf total size)
+      (setf valid-principals value))
+
+    ;; Valid after
+    (multiple-value-bind (value size) (rfc4251:decode :uint64 stream)
+      (incf total size)
+      (setf valid-after value))
+
+    ;; Valid before
+    (multiple-value-bind (value size) (rfc4251:decode :uint64 stream)
+      (incf total size)
+      (setf valid-before value))
+
+    ;; Critical options
+    (multiple-value-bind (value size) (rfc4251:decode :ssh-cert-critical-options stream)
+      (incf total size)
+      (setf critical-options value))
+
+    ;; Extensions
+    (multiple-value-bind (value size) (rfc4251:decode :ssh-cert-extensions stream)
+      (incf total size)
+      (setf extensions value))
+
+    ;; Reserved
+    (multiple-value-bind (value size) (rfc4251:decode :buffer stream)
+      ;; Reserved field is currently unused and ignored
+      (unless (zerop (length value))
+	(error 'invalid-key-error
+	       :description "invalid/unknown reserved field"))
+      (incf total size)
+      (setf reserved value))
+
+    ;; Signature key. This one resides in a buffer on it's own, so
+    ;; decode the buffer first.
+    (multiple-value-bind (value size) (rfc4251:decode :buffer stream)
+      (incf total size)
+      (cl-rfc4251:with-binary-input-stream (s value)
+	(setf signature-key (rfc4251:decode :public-key s))))
+
+    ;; Signature
+    ;; TODO: Parse and validate the signature
+    (multiple-value-bind (value size) (rfc4251:decode :buffer stream)
+      (incf total size)
+      (cl-rfc4251:with-binary-input-stream (s value)
+	(setf signature (rfc4251:decode :cert-signature s))))
+
+    ;; Create the certificate key
+    (values
+     (make-instance 'certificate
+		    :comment comment
+		    :kind kind
+		    :nonce nonce
+		    :key client-pk
+		    :serial serial
+		    :type cert-key-type
+		    :key-id key-identity
+		    :valid-principals valid-principals
+		    :valid-after valid-after
+		    :valid-before valid-before
+		    :critical-options critical-options
+		    :extensions extensions
+		    :reserved reserved
+		    :signature-key signature-key
+		    :signature signature)
+     total)))
