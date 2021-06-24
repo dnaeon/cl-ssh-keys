@@ -197,6 +197,55 @@ Please refer to [1] for more details.
       (rfc4251:encode :string "" s))
     (rfc4251:encode :buffer (rfc4251:get-binary-stream-bytes s) stream)))
 
+(defparameter *cert-signature-types*
+  '((:name "ssh-rsa"
+     :digest :sha1)
+    (:name "rsa-sha2-256"
+     :digest :sha256)
+    (:name "rsa-sha2-512"
+     :digest :sha512))
+  "OpenSSH certificate signature types")
+
+(defun get-signature-type (value)
+  "Get the signature type with name identified by VALUE"
+  (find value *cert-signature-types*
+	:key (lambda (item)
+	       (getf item :name))
+	:test #'equal))
+
+(defun get-signature-type-or-lose (value)
+  (let ((signature-type (get-signature-type value)))
+    (unless signature-type
+      (error 'base-error
+	     :description (format nil "Unknown signature type ~a" value)))
+    signature-type))
+
+(defclass signature ()
+  ((type
+   :initarg :type
+   :reader signature-type
+   :initform (error "Must specify signature type")
+   :documentation "Signature type")
+   (blob
+    :initarg :blob
+    :reader signature-blob
+    :initform (error "Must specify signature blob")
+    :documentation "Computed signature"))
+  (:documentation "Certificate signature"))
+
+(defmethod rfc4251:decode ((type (eql :cert-signature)) stream &key)
+  "Decode certificate key signature"
+  (let* ((type-data (multiple-value-list (rfc4251:decode :string stream)))
+	 (blob-data (multiple-value-list (rfc4251:decode :buffer stream)))
+	 (type (first type-data))
+	 (blob (first blob-data))
+	 (total (+ (second type-data) (second blob-data)))
+	 (signature-type (get-signature-type-or-lose type))
+	 (signature (make-instance 'signature
+				   :type signature-type
+				   :blob blob)))
+    (values signature total)))
+
 (defclass certificate (base-key)
   ((nonce
     :initarg :nonce
