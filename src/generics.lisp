@@ -23,6 +23,8 @@
 ;; (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 ;; THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+(in-package :cl-ssh-keys)
+
 (defgeneric fingerprint (hash-spec key &key)
   (:documentation "Computes the fingerprint of the given KEY using the HASH-SPEC"))
 
@@ -34,3 +36,6 @@
 
 (defgeneric generate-key-pair (kind &key)
   (:documentation "Generates a new pair of public and private keys"))
+
+(defgeneric verify-signature (key message signature digest-spec)
+  (:documentation "Verifies the signature of the given message using the public key and digest-spec"))
