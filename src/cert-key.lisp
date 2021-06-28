@@ -253,7 +253,7 @@ Please refer to [1] for more details.
       (+ (rfc4251:encode :string type-name stream)
 	 (rfc4251:encode :buffer blob stream)))))
 
-(defclass certificate (base-key)
+(defclass certificate (base-public-key)
   ((nonce
     :initarg :nonce
     :initform (error "Must provide nonce")
