@@ -78,7 +78,8 @@ type name, when being embedded within a certificate."
     (+
      (if encode-key-type-p
          (rfc4251:encode :string key-type-name stream)
-         0) ;; No key type name being encoded, so return 0 here.
+         0) ;; No key type name being encoded, so return 0 bytes written here.
+
      (case key-id
        (:ssh-rsa (rfc4251:encode :rsa-public-key key stream))
        (:ssh-dss (rfc4251:encode :dsa-public-key key stream))

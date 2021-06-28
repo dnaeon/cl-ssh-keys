@@ -50,7 +50,7 @@
   (:import-from :uiop)
   (:import-from :alexandria)
   (:export
-   ;; package
+   ;; base
    :base-key
    :key-kind
    :key-comment
@@ -79,6 +79,8 @@
    :key-bits
    :write-key
    :generate-key-pair
+   :verify-signature
+   :get-bytes-for-signing
 
    ;; key-types
    :*key-types*
@@ -173,31 +175,24 @@
    :+ssh-cert-max-valid-to+
    :describe-cert-option
    :get-supported-cert-options
-   :get-cert-critical-options))
+   :get-cert-critical-options
+   :get-signature-type
+   :get-signature-type-or-lose
+   :signature
+   :signature-type
+   :signature-blob
+   :certificate
+   :cert-nonce
+   :cert-key
+   :cert-serial
+   :cert-type
+   :cert-key-id
+   :cert-valid-principals
+   :cert-valid-after
+   :cert-valid-before
+   :cert-critical-options
+   :cert-extensions
+   :cert-reserved
+   :cert-signature-key
+   :cert-signature))
 (in-package :cl-ssh-keys)
-
-(defclass base-key ()
-  ((kind
-    :initarg :kind
-    :initform (error "Must specify key kind")
-    :reader key-kind
-    :documentation "SSH key kind")
-   (comment
-    :initarg :comment
-    :initform nil
-    :accessor key-comment
-    :documentation "Comment associated with the key"))
-  (:documentation "Base class for representing an OpenSSH key"))
-
-(defclass base-ecdsa-nistp-key (base-key)
-  ((identifier
-    :initarg :identifier
-    :initform (error "Must specify curve identifier")
-    :reader ecdsa-curve-identifier
-    :documentation "Identifier of the elliptic curve domain parameters"))
-  (:documentation "Base class for representing an OpenSSH ECDSA key"))
-
-(defun write-key-to-path (key path)
-  "Writes the given KEY to the destination PATH"
-  (with-open-file (out path :direction :output)
-    (write-key key out)))
