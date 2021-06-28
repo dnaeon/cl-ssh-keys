@@ -58,9 +58,3 @@
   (:documentation "Signaled when attempting to perform an operation on keys that are not supported")
   (:report (lambda (condition stream)
              (format stream "~a~&" (error-description condition)))))
-
-(define-condition invalid-signature-error (base-error)
-  ()
-  (:documentation "Signaled when signature verification has failed")
-  (:report (lambda (condition stream)
-             (format stream "~a~&" (error-description condition)))))
