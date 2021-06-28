@@ -246,6 +246,13 @@ Please refer to [1] for more details.
 				   :blob blob)))
     (values signature total)))
 
+(defmethod rfc4251:encode ((type (eql :cert-signature)) (value signature) stream &key)
+  "Encode certificate signature into the given stream"
+  (with-accessors ((type signature-type) (blob signature-blob)) value
+    (let ((type-name (getf type :name)))
+      (+ (rfc4251:encode :string type-name stream)
+	 (rfc4251:encode :buffer blob stream)))))
+
 (defclass certificate (base-key)
   ((nonce
     :initarg :nonce
