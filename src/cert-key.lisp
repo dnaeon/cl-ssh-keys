@@ -321,6 +321,28 @@ Please refer to [1] for more details.
     :documentation "The certificate signature"))
   (:documentation "An OpenSSH certificate key"))
 
+(defmethod get-bytes-for-signing ((cert certificate) &key)
+  "Returns the portion of the certificate key which will be signed"
+  (rfc4251:with-binary-output-stream (s)
+    (rfc4251:encode :string (getf (key-kind cert) :name) s)  ;; Kind
+    (rfc4251:encode :buffer (cert-nonce cert) s)  ;; Nonce
+    (rfc4251:encode :public-key (cert-key cert) s :encode-key-type-p nil)  ;; Client public key
+    (rfc4251:encode :uint64 (cert-serial cert) s)  ;; Serial
+    (rfc4251:encode :uint32 (cert-type cert) s)  ;; Cert type (user or host)
+    (rfc4251:encode :string (cert-key-id cert) s)  ;; Key identity
+    (rfc4251:encode :ssh-cert-valid-principals (cert-valid-principals cert) s)  ;; Valid principals
+    (rfc4251:encode :uint64 (cert-valid-after cert) s)  ;; Valid after
+    (rfc4251:encode :uint64 (cert-valid-before cert) s)   ;; Valid before
+    (rfc4251:encode :ssh-cert-critical-options (cert-critical-options cert) s)  ;; Critical options
+    (rfc4251:encode :ssh-cert-extensions (cert-extensions cert) s)  ;; Extensions
+    (rfc4251:encode :buffer (cert-reserved cert) s)  ;; Reserved
+
+    ;; Signature key. This one resides in a buffer of it's own
+    (rfc4251:with-binary-output-stream (signature-key-s)
+      (rfc4251:encode :public-key (cert-signature-key cert) signature-key-s)
+      (rfc4251:encode :buffer (rfc4251:get-binary-stream-bytes signature-key-s) s))
+    (rfc4251:get-binary-stream-bytes s)))
+
 (defmethod rfc4251:decode ((type (eql :ssh-cert-key)) stream &key kind comment)
   "Decodes an OpenSSH certificate key from the given stream"
   (let ((client-pk-plain-name (getf kind :plain-name))
