@@ -359,7 +359,8 @@ Please refer to [1] for more details.
 	extensions
 	reserved
 	signature-key
-	signature)
+	signature
+	cert)
     ;; Nonce
     (multiple-value-bind (value size) (rfc4251:decode :buffer stream)
       ;; nonce should be 16 or 32 bytes in size
@@ -435,14 +436,13 @@ Please refer to [1] for more details.
 	(setf signature-key (rfc4251:decode :public-key s))))
 
     ;; Signature
-    ;; TODO: Parse and validate the signature
     (multiple-value-bind (value size) (rfc4251:decode :buffer stream)
       (incf total size)
       (cl-rfc4251:with-binary-input-stream (s value)
 	(setf signature (rfc4251:decode :cert-signature s))))
 
     ;; Create the certificate key
-    (values
+    (setf cert
      (make-instance 'certificate
 		    :comment comment
 		    :kind kind
@@ -458,5 +458,14 @@ Please refer to [1] for more details.
 		    :extensions extensions
 		    :reserved reserved
 		    :signature-key signature-key
-		    :signature signature)
-     total)))
+		    :signature signature))
+
+    (unless (verify-signature (cert-signature-key cert)
+			      (get-bytes-for-signing cert)
+			      (signature-blob signature)
+			      (getf (signature-type signature) :digest))
+      (error 'invalid-key-error
+	     :description "Signature verification failed"))
+
+    (values cert total)))
+

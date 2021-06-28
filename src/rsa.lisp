@@ -66,6 +66,9 @@
   ()
   (:documentation "Represents an OpenSSH RSA private key"))
 
+(defmethod verify-signature ((key rsa-public-key) message signature digest-spec)
+  (rsassa-pkcs1-v1_5-verify key message signature digest-spec))
+
 (defmethod rfc4251:decode ((type (eql :rsa-private-key)) stream &key kind public-key
                                                                   cipher-name kdf-name
                                                                   kdf-salt kdf-rounds
