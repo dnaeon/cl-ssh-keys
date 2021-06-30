@@ -347,6 +347,33 @@ The bytes for signing represent everything up to the signature."
       (rfc4251:encode :buffer (rfc4251:get-binary-stream-bytes signature-key-s) s))
     (rfc4251:get-binary-stream-bytes s)))
 
+(defmethod rfc4251:encode ((type (eql :ssh-cert-key)) (cert certificate) stream &key)
+  "Encodes the OpenSSH certificate key into the given binary stream"
+  (rfc4251:encode :buffer (cert-nonce cert) stream)  ;; Nonce
+
+  ;; Client public key. Note that for certificates the public key is
+  ;; not preceeded by the key kind string.
+  (rfc4251:encode :public-key (cert-key cert) stream :encode-key-type-p nil)
+  (rfc4251:encode :uint64 (cert-serial cert) stream)  ;; Serial
+  (rfc4251:encode :uint32 (cert-type cert) stream)  ;; Cert type (user or host)
+  (rfc4251:encode :string (cert-key-id cert) stream)  ;; Key identity
+  (rfc4251:encode :ssh-cert-valid-principals (cert-valid-principals cert) stream)  ;; Valid principals
+  (rfc4251:encode :uint64 (cert-valid-after cert) stream)  ;; Valid after
+  (rfc4251:encode :uint64 (cert-valid-before cert) stream)   ;; Valid before
+  (rfc4251:encode :ssh-cert-critical-options (cert-critical-options cert) stream)  ;; Critical options
+  (rfc4251:encode :ssh-cert-extensions (cert-extensions cert) stream)  ;; Extensions
+  (rfc4251:encode :buffer (cert-reserved cert) stream)  ;; Reserved
+
+  ;; Signature key. This one resides in a buffer of it's own
+  (rfc4251:with-binary-output-stream (signature-key-s)
+    (rfc4251:encode :public-key (cert-signature-key cert) signature-key-s)
+    (rfc4251:encode :buffer (rfc4251:get-binary-stream-bytes signature-key-s) stream))
+
+  ;; Signature. This one resides in a separate buffer as well.
+  (rfc4251:with-binary-output-stream (signature-s)
+    (rfc4251:encode :cert-signature (cert-signature cert) signature-s)
+    (rfc4251:encode :buffer (rfc4251:get-binary-stream-bytes signature-s) stream)))
+
 (defmethod rfc4251:decode ((type (eql :ssh-cert-key)) stream &key kind comment)
   "Decodes an OpenSSH certificate key from the given stream"
   (let ((client-pk-plain-name (getf kind :plain-name))
