@@ -72,7 +72,7 @@ Some key types (e.g. OpenSSH certificate keys) do not encode the key
 type name, when being embedded within a certificate."
   (let* ((kind (key-kind key))
          (key-id (getf kind :id))
-         (key-type-name (getf kind :plain-name)))
+         (key-type-name (getf kind :name)))
     ;; The number of bytes written should be the sum of the
     ;; key-type name and the public key components
     (+
@@ -128,7 +128,7 @@ type name, when being embedded within a certificate."
          (size (rfc4251:encode :public-key key s))
          (data (rfc4251:get-binary-stream-bytes s))
          (encoded (binascii:encode-base64 data))
-         (key-type-name (getf (key-kind key) :plain-name))
+         (key-type-name (getf (key-kind key) :name))
          (comment (key-comment key)))
     (declare (ignore size))
     (format stream "~a ~a" key-type-name encoded)
