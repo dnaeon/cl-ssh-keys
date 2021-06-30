@@ -322,11 +322,15 @@ Please refer to [1] for more details.
   (:documentation "An OpenSSH certificate key"))
 
 (defmethod get-bytes-for-signing ((cert certificate) &key)
-  "Returns the portion of the certificate key which will be signed"
+  "Returns the portion of the certificate key which will be signed.
+The bytes for signing represent everything up to the signature."
   (rfc4251:with-binary-output-stream (s)
     (rfc4251:encode :string (getf (key-kind cert) :name) s)  ;; Kind
     (rfc4251:encode :buffer (cert-nonce cert) s)  ;; Nonce
-    (rfc4251:encode :public-key (cert-key cert) s :encode-key-type-p nil)  ;; Client public key
+
+    ;; Client public key. Note that for certificates the public key is
+    ;; not preceeded by the key kind string.
+    (rfc4251:encode :public-key (cert-key cert) s :encode-key-type-p nil)
     (rfc4251:encode :uint64 (cert-serial cert) s)  ;; Serial
     (rfc4251:encode :uint32 (cert-type cert) s)  ;; Cert type (user or host)
     (rfc4251:encode :string (cert-key-id cert) s)  ;; Key identity
@@ -364,9 +368,10 @@ Please refer to [1] for more details.
     ;; Nonce
     (multiple-value-bind (value size) (rfc4251:decode :buffer stream)
       ;; nonce should be 16 or 32 bytes in size
-      (unless (or (= 16 (length value)) (= 32 (length value)))
+      (let ((size (length value)))
+	(unless (or (= 16 size) (= 32 size))
 	(error 'invalid-key-error
-	       :description "nonce should be 16 or 32 bytes"))
+	       :description "nonce should be 16 or 32 bytes")))
       (incf total size)
       (setf nonce value))
 
@@ -435,7 +440,7 @@ Please refer to [1] for more details.
       (cl-rfc4251:with-binary-input-stream (s value)
 	(setf signature-key (rfc4251:decode :public-key s))))
 
-    ;; Signature
+    ;; Signature. This one resides in a separate buffer as well.
     (multiple-value-bind (value size) (rfc4251:decode :buffer stream)
       (incf total size)
       (cl-rfc4251:with-binary-input-stream (s value)
@@ -468,4 +473,3 @@ Please refer to [1] for more details.
 	     :description "Signature verification failed"))
 
     (values cert total)))
-
