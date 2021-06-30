@@ -87,6 +87,7 @@ type name, when being embedded within a certificate."
        (:ecdsa-sha2-nistp256 (rfc4251:encode :ecdsa-nistp256-public-key key stream))
        (:ecdsa-sha2-nistp384 (rfc4251:encode :ecdsa-nistp384-public-key key stream))
        (:ecdsa-sha2-nistp521 (rfc4251:encode :ecdsa-nistp521-public-key key stream))
+       (:ssh-rsa-cert-v01 (rfc4251:encode :ssh-cert-key key stream))
        (t
         (error 'invalid-key-error
                :description (format nil "Unknown key type ~a" key-type-name)))))))
