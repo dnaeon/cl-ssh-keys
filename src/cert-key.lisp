@@ -502,3 +502,18 @@ The bytes for signing represent everything up to the signature."
 	     :description "Signature verification failed"))
 
     (values cert total)))
+
+(defmethod fingerprint ((hash-spec (eql :md5)) (key certificate) &key)
+  "Computes the MD5 fingerprint of the embedded client public key"
+  (with-accessors ((public-key cert-key)) key
+    (fingerprint :md5 public-key)))
+
+(defmethod fingerprint ((hash-spec (eql :sha1)) (key certificate) &key)
+  "Computes the SHA1 fingerprint of the embedded client public key"
+  (with-slots ((public-key cert-key)) key
+    (fingerprint :sha1 public-key)))
+
+(defmethod fingerprint ((hash-spec (eql :sha256)) (key certificate) &key)
+  "Computes the SHA256 fingerprint of the embedded client public key"
+  (with-accessors ((public-key cert-key)) key
+    (fingerprint :sha256 public-key)))
