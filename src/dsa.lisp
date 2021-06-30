@@ -29,6 +29,9 @@
   ()
   (:documentation "Represents an OpenSSH DSA public key"))
 
+(defmethod verify-signature ((key dsa-public-key) message signature digest-spec)
+  (ironclad:verify-signature key (ironclad:digest-sequence digest-spec message) signature))
+
 (defmethod rfc4251:decode ((type (eql :dsa-public-key)) stream &key kind comment)
   "Decodes a DSA public key from the given binary stream as defined in FIPS-186-2"
   (unless kind

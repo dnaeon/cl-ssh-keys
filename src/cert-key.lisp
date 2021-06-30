@@ -203,7 +203,9 @@ Please refer to [1] for more details.
     (:name "rsa-sha2-256"
      :digest :sha256)
     (:name "rsa-sha2-512"
-     :digest :sha512))
+     :digest :sha512)
+    (:name "ssh-dss"
+     :digest :sha1))
   "OpenSSH certificate signature types")
 
 (defun get-signature-type (value)
