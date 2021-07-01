@@ -37,6 +37,11 @@
   ()
   (:documentation "Represents an OpenSSH Ed25519 public key"))
 
+(defmethod verify-signature ((key ed25519-public-key) message (signature signature) &key)
+  "Verifies the SIGNATURE of MESSAGE according to RFC 8032, section 5.1.7"
+  (let ((blob (signature-blob signature)))
+    (ironclad:verify-signature key message blob)))
+
 (defmethod rfc4251:decode ((type (eql :ed25519-public-key)) stream &key kind comment)
   "Decodes an Ed25519 public key from the given binary stream.
 See https://tools.ietf.org/html/draft-josefsson-eddsa-ed25519-03 for more details."
