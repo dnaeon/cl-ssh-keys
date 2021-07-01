@@ -37,8 +37,8 @@
 (defgeneric generate-key-pair (kind &key)
   (:documentation "Generates a new pair of public and private keys"))
 
-(defgeneric verify-signature (key message signature digest-spec)
-  (:documentation "Verifies the signature of the given message using the public key and digest-spec"))
+(defgeneric verify-signature (key message signature)
+  (:documentation "Verifies the signature of the given message using the public key"))
 
 (defgeneric get-bytes-for-signing (key &key)
   (:documentation "Returns the bytes of the key which will be signed"))
