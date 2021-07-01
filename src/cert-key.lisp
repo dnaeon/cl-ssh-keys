@@ -458,8 +458,7 @@ The bytes for signing represent everything up to the signature."
 
     (unless (verify-signature (cert-signature-key cert)
 			      (get-bytes-for-signing cert)
-			      (signature-blob signature)
-			      (getf (signature-type signature) :digest))
+			      signature)
       (error 'invalid-key-error
 	     :description "Signature verification failed"))
 
