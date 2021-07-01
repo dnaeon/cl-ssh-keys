@@ -29,8 +29,11 @@
   ()
   (:documentation "Represents an OpenSSH DSA public key"))
 
-(defmethod verify-signature ((key dsa-public-key) message signature digest-spec)
-  (ironclad:verify-signature key (ironclad:digest-sequence digest-spec message) signature))
+(defmethod verify-signature ((key dsa-public-key) message (signature signature) &key)
+  "Verifies the SIGNATURE of MESSAGE according to RFC 4253, section 6.6"
+  (let ((digest-spec (getf (signature-type signature) :digest))
+	(blob (signature-blob signature)))
+    (ironclad:verify-signature key (ironclad:digest-sequence digest-spec message) blob)))
 
 (defmethod rfc4251:decode ((type (eql :dsa-public-key)) stream &key kind comment)
   "Decodes a DSA public key from the given binary stream as defined in FIPS-186-2"
