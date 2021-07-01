@@ -30,6 +30,7 @@
                              (:file "private-key" :depends-on ("package"))
                              (:file "conditions" :depends-on ("package"))
                              (:file "key-types" :depends-on ("package"))
+			     (:file "signature" :depends-on ("package"))
                              (:file "ciphers" :depends-on ("package"))))
                (:module "keys"
                 :pathname #P"src/"
