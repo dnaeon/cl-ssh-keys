@@ -40,7 +40,7 @@
      :digest :sha256)
     (:name "ecdsa-sha2-nistp384"
      :digest :sha384)
-    (:name "ecdsa-sha2-nistp512"
+    (:name "ecdsa-sha2-nistp521"
      :digest :sha512))
   "OpenSSH certificate signature types")
 
