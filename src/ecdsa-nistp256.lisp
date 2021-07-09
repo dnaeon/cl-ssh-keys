@@ -34,6 +34,21 @@
   ()
   (:documentation "Represents an OpenSSH ECDSA NIST P-256 public key"))
 
+(defmethod verify-signature ((key base-ecdsa-nistp-public-key) message (signature signature) &key)
+  "Verifies the signature of the message according to RFC 5656"
+  ;; The `r' and `s' signature parameters are part of the signature
+  ;; blob, so we need to decode them first. See RFC 5656, section
+  ;; 3.1.2 for more details.
+  (rfc4251:with-binary-input-stream (stream (signature-blob signature))
+    (let* ((n-bits (key-bits key))
+	   (r (rfc4251:decode :mpint stream))
+	   (s (rfc4251:decode :mpint stream))
+	   (r-bytes (ironclad:integer-to-octets r :n-bits n-bits))
+	   (s-bytes (ironclad:integer-to-octets s :n-bits n-bits))
+	   (digest-spec (getf (signature-type signature) :digest))
+	   (ecdsa-signature (concatenate '(simple-array (unsigned-byte 8) (*)) r-bytes s-bytes)))
+      (ironclad:verify-signature key (ironclad:digest-sequence digest-spec message) ecdsa-signature))))
+
 (defmethod rfc4251:decode ((type (eql :ecdsa-nistp256-public-key)) stream &key kind comment)
   "Decodes an ECDSA NIST P-256 public key from the given binary stream"
   (unless kind
