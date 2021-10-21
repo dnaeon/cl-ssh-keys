@@ -471,7 +471,7 @@ The bytes for signing represent everything up to the signature."
 
 (defmethod fingerprint ((hash-spec (eql :sha1)) (key certificate) &key)
   "Computes the SHA1 fingerprint of the embedded client public key"
-  (with-slots ((public-key cert-key)) key
+  (with-accessors ((public-key cert-key)) key
     (fingerprint :sha1 public-key)))
 
 (defmethod fingerprint ((hash-spec (eql :sha256)) (key certificate) &key)
