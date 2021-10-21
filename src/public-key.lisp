@@ -58,7 +58,13 @@ from the binary stream and then dispatched to the respective implementation."
           (:ecdsa-sha2-nistp256 (rfc4251:decode :ecdsa-nistp256-public-key stream :kind key-type :comment comment))
           (:ecdsa-sha2-nistp384 (rfc4251:decode :ecdsa-nistp384-public-key stream :kind key-type :comment comment))
           (:ecdsa-sha2-nistp521 (rfc4251:decode :ecdsa-nistp521-public-key stream :kind key-type :comment comment))
+	  ;; Cert keys
 	  (:ssh-rsa-cert-v01 (rfc4251:decode :ssh-cert-key stream :kind key-type :comment comment))
+	  (:ssh-dss-cert-v01 (rfc4251:decode :ssh-cert-key stream :kind key-type :comment comment))
+	  (:ecdsa-sha2-nistp256-cert-v01 (rfc4251:decode :ssh-cert-key stream :kind key-type :comment comment))
+	  (:ecdsa-sha2-nistp384-cert-v01 (rfc4251:decode :ssh-cert-key stream :kind key-type :comment comment))
+	  (:ecdsa-sha2-nistp521-cert-v01 (rfc4251:decode :ssh-cert-key stream :kind key-type :comment comment))
+	  (:ssh-ed25519-cert-v01 (rfc4251:decode :ssh-cert-key stream :kind key-type :comment comment))
           (t
            (error 'invalid-key-error
                   :description (format nil "Unknown key type ~a" key-type-name))))
@@ -87,7 +93,13 @@ type name, when being embedded within a certificate."
        (:ecdsa-sha2-nistp256 (rfc4251:encode :ecdsa-nistp256-public-key key stream))
        (:ecdsa-sha2-nistp384 (rfc4251:encode :ecdsa-nistp384-public-key key stream))
        (:ecdsa-sha2-nistp521 (rfc4251:encode :ecdsa-nistp521-public-key key stream))
+       ;; Cert keys
        (:ssh-rsa-cert-v01 (rfc4251:encode :ssh-cert-key key stream))
+       (:ssh-dss-cert-v01 (rfc4251:encode :ssh-cert-key key stream))
+       (:ecdsa-sha2-nistp256-cert-v01 (rfc4251:encode :ssh-cert-key key stream))
+       (:ecdsa-sha2-nistp384-cert-v01 (rfc4251:encode :ssh-cert-key key stream))
+       (:ecdsa-sha2-nistp521-cert-v01 (rfc4251:encode :ssh-cert-key key stream))
+       (:ssh-ed25519-cert-v01 (rfc4251:encode :ssh-cert-key key stream))
        (t
         (error 'invalid-key-error
                :description (format nil "Unknown key type ~a" key-type-name)))))))
