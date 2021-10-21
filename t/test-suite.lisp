@@ -1304,7 +1304,11 @@
 
       ;; Extensions
       (ok (equal (ssh-keys:cert-extensions key)
-		 '("permit-X11-forwarding" "permit-agent-forwarding" "permit-port-forwarding" "permit-pty" "permit-user-rc"))
+		 '("permit-X11-forwarding"
+		   "permit-agent-forwarding"
+		   "permit-port-forwarding"
+		   "permit-pty"
+		   "permit-user-rc"))
 	  "Extensions")
 
       ;; Reserved
@@ -1388,7 +1392,275 @@
 
       ;; Extensions
       (ok (equal (ssh-keys:cert-extensions key)
-		 '("permit-X11-forwarding" "permit-agent-forwarding" "permit-port-forwarding" "permit-pty" "permit-user-rc"))
+		 '("permit-X11-forwarding"
+		   "permit-agent-forwarding"
+		   "permit-port-forwarding"
+		   "permit-pty"
+		   "permit-user-rc"))
+	  "Extensions")
+
+      ;; Reserved
+      (ok (equalp (ssh-keys:cert-reserved key) #())
+	  "Reserved")
+
+      ;; Signature
+      (ok (equal (ssh-keys:signature-type (ssh-keys:cert-signature key))
+		 '(:name "rsa-sha2-512" :digest :sha512))
+	  "Signature type")
+
+      ;; Verify encoding back into text representation
+      (ssh-keys:write-key key string-out-stream)
+      (ok (string= (alexandria:read-file-into-string cert-file-path)
+		   (get-output-stream-string string-out-stream))
+	  "Write cert file into text representation"))))
+
+(deftest ecdsa-sha2-nistp256-cert-v01
+  (testing "decode ecdsa-sha2-nistp256-cert-v01"
+    (let* ((cert-file-path (get-test-key-path #P"id_ecdsa_nistp256-cert.pub"))
+	   (key (ssh-keys:parse-public-key-file cert-file-path))
+	   (string-out-stream (make-string-output-stream)))
+      ;; Client key
+      (ok (string= (ssh-keys:fingerprint :md5 key)
+		   "3a:36:ba:c7:2c:26:9e:e3:14:bb:61:40:46:60:31:ae")
+	  "Client key MD5 fingerprint")
+      (ok (string= (ssh-keys:fingerprint :sha1 key)
+		   "eTmWRwNGK7FQsfbFiIGzfNG2hxo")
+	  "Client key SHA-1 fingerprint")
+      (ok (string= (ssh-keys:fingerprint :sha256 key)
+		   "q56e29ej1aTV9ptIX/ERikzqk0HWEtaBDBH33ziQVSM")
+	  "Client key SHA-256 fingerprint")
+
+      ;; Key kind
+      (ok (equalp (ssh-keys:key-kind key)
+		  '(:name "ecdsa-sha2-nistp256-cert-v01@openssh.com"
+		    :plain-name "ecdsa-sha2-nistp256"
+		    :short-name "ECDSA-CERT"
+		    :id :ecdsa-sha2-nistp256-cert-v01
+		    :is-cert t))
+	  "Key kind")
+
+      ;; Key comment
+      (ok (string= (ssh-keys:key-comment key) "john.doe@localhost")
+	  "Key comment")
+
+      ;; CA key
+      (ok (string= (ssh-keys:fingerprint :md5 (ssh-keys:cert-signature-key key))
+		   "73:08:1c:1b:e5:63:0f:46:a7:87:c9:34:10:e9:bc:ee")
+	  "CA key MD5 fingerprint")
+      (ok (string= (ssh-keys:fingerprint :sha1 (ssh-keys:cert-signature-key key))
+		   "yLj/8sjCpPxWVngCdxd9jnsSfjg")
+	  "CA key SHA-1 fingerprint")
+      (ok (string= (ssh-keys:fingerprint :sha256 (ssh-keys:cert-signature-key key))
+		   "TqL9a97yRr48oop+puCjf4sxwiwevsBQ7N+jVScnBhY")
+	  "CA key SHA-256 fingerprint")
+
+      ;; Serial
+      (ok (= 0 (ssh-keys:cert-serial key))
+	  "Serial number")
+
+      ;; Key identity
+      (ok (string= (ssh-keys:cert-key-id key) "john.doe")
+	  "Key identity")
+
+      ;; Valid principals
+      (ok (equal (ssh-keys:cert-valid-principals key) nil)
+	  "Valid principals")
+
+      ;; Valid After
+      (ok (equal (ssh-keys:cert-valid-after key) 0)
+	  "Valid After")
+
+      ;; Valid Before
+      (ok (equal (ssh-keys:cert-valid-before key) ssh-keys:+ssh-cert-max-valid-to+)
+	  "Valid Before")
+
+      ;; Critical Options
+      (ok (equal (ssh-keys:cert-critical-options key) nil)
+	  "Critical options")
+
+      ;; Extensions
+      (ok (equal (ssh-keys:cert-extensions key)
+		 '("permit-X11-forwarding"
+		   "permit-agent-forwarding"
+		   "permit-port-forwarding"
+		   "permit-pty"
+		   "permit-user-rc"))
+	  "Extensions")
+
+      ;; Reserved
+      (ok (equalp (ssh-keys:cert-reserved key) #())
+	  "Reserved")
+
+      ;; Signature
+      (ok (equal (ssh-keys:signature-type (ssh-keys:cert-signature key))
+		 '(:name "rsa-sha2-512" :digest :sha512))
+	  "Signature type")
+
+      ;; Verify encoding back into text representation
+      (ssh-keys:write-key key string-out-stream)
+      (ok (string= (alexandria:read-file-into-string cert-file-path)
+		   (get-output-stream-string string-out-stream))
+	  "Write cert file into text representation"))))
+
+(deftest ecdsa-sha2-nistp384-cert-v01
+  (testing "decode ecdsa-sha2-nistp384-cert-v01"
+    (let* ((cert-file-path (get-test-key-path #P"id_ecdsa_nistp384-cert.pub"))
+	   (key (ssh-keys:parse-public-key-file cert-file-path))
+	   (string-out-stream (make-string-output-stream)))
+      ;; Client key
+      (ok (string= (ssh-keys:fingerprint :md5 key)
+		   "4b:4d:9f:0b:51:2a:0b:8c:7f:db:f2:e8:cc:20:93:f2")
+	  "Client key MD5 fingerprint")
+      (ok (string= (ssh-keys:fingerprint :sha1 key)
+		   "O4neOo5GtvUUZUErlDu8gD/MKr4")
+	  "Client key SHA-1 fingerprint")
+      (ok (string= (ssh-keys:fingerprint :sha256 key)
+		   "3HR8kr5XphIWXy312brnRHbrTMq6WmKP/8EkVMLRqMU")
+	  "Client key SHA-256 fingerprint")
+
+      ;; Key kind
+      (ok (equalp (ssh-keys:key-kind key)
+		  '(:name "ecdsa-sha2-nistp384-cert-v01@openssh.com"
+		    :plain-name "ecdsa-sha2-nistp384"
+		    :short-name "ECDSA-CERT"
+		    :id :ecdsa-sha2-nistp384-cert-v01
+		    :is-cert t))
+	  "Key kind")
+
+      ;; Key comment
+      (ok (string= (ssh-keys:key-comment key) "john.doe@localhost")
+	  "Key comment")
+
+      ;; CA key
+      (ok (string= (ssh-keys:fingerprint :md5 (ssh-keys:cert-signature-key key))
+		   "73:08:1c:1b:e5:63:0f:46:a7:87:c9:34:10:e9:bc:ee")
+	  "CA key MD5 fingerprint")
+      (ok (string= (ssh-keys:fingerprint :sha1 (ssh-keys:cert-signature-key key))
+		   "yLj/8sjCpPxWVngCdxd9jnsSfjg")
+	  "CA key SHA-1 fingerprint")
+      (ok (string= (ssh-keys:fingerprint :sha256 (ssh-keys:cert-signature-key key))
+		   "TqL9a97yRr48oop+puCjf4sxwiwevsBQ7N+jVScnBhY")
+	  "CA key SHA-256 fingerprint")
+
+      ;; Serial
+      (ok (= 0 (ssh-keys:cert-serial key))
+	  "Serial number")
+
+      ;; Key identity
+      (ok (string= (ssh-keys:cert-key-id key) "john.doe")
+	  "Key identity")
+
+      ;; Valid principals
+      (ok (equal (ssh-keys:cert-valid-principals key) nil)
+	  "Valid principals")
+
+      ;; Valid After
+      (ok (equal (ssh-keys:cert-valid-after key) 0)
+	  "Valid After")
+
+      ;; Valid Before
+      (ok (equal (ssh-keys:cert-valid-before key) ssh-keys:+ssh-cert-max-valid-to+)
+	  "Valid Before")
+
+      ;; Critical Options
+      (ok (equal (ssh-keys:cert-critical-options key) nil)
+	  "Critical options")
+
+      ;; Extensions
+      (ok (equal (ssh-keys:cert-extensions key)
+		 '("permit-X11-forwarding"
+		   "permit-agent-forwarding"
+		   "permit-port-forwarding"
+		   "permit-pty"
+		   "permit-user-rc"))
+	  "Extensions")
+
+      ;; Reserved
+      (ok (equalp (ssh-keys:cert-reserved key) #())
+	  "Reserved")
+
+      ;; Signature
+      (ok (equal (ssh-keys:signature-type (ssh-keys:cert-signature key))
+		 '(:name "rsa-sha2-512" :digest :sha512))
+	  "Signature type")
+
+      ;; Verify encoding back into text representation
+      (ssh-keys:write-key key string-out-stream)
+      (ok (string= (alexandria:read-file-into-string cert-file-path)
+		   (get-output-stream-string string-out-stream))
+	  "Write cert file into text representation"))))
+
+(deftest ecdsa-sha2-nistp521-cert-v01
+  (testing "decode ecdsa-sha2-nistp521-cert-v01"
+    (let* ((cert-file-path (get-test-key-path #P"id_ecdsa_nistp521-cert.pub"))
+	   (key (ssh-keys:parse-public-key-file cert-file-path))
+	   (string-out-stream (make-string-output-stream)))
+      ;; Client key
+      (ok (string= (ssh-keys:fingerprint :md5 key)
+		   "20:e7:81:b1:5b:25:5b:51:86:68:d9:0d:f2:4f:c2:bc")
+	  "Client key MD5 fingerprint")
+      (ok (string= (ssh-keys:fingerprint :sha1 key)
+		   "1itTOyxo/LDunoesxEBlQbvRnSM")
+	  "Client key SHA-1 fingerprint")
+      (ok (string= (ssh-keys:fingerprint :sha256 key)
+		   "IpPQNSCfvLbG1/RfcELgaG12r3RH4av+qWE32dp2yWE")
+	  "Client key SHA-256 fingerprint")
+
+      ;; Key kind
+      (ok (equalp (ssh-keys:key-kind key)
+		  '(:name "ecdsa-sha2-nistp521-cert-v01@openssh.com"
+		    :plain-name "ecdsa-sha2-nistp521"
+		    :short-name "ECDSA-CERT"
+		    :id :ecdsa-sha2-nistp521-cert-v01
+		    :is-cert t))
+	  "Key kind")
+
+      ;; Key comment
+      (ok (string= (ssh-keys:key-comment key) "john.doe@localhost")
+	  "Key comment")
+
+      ;; CA key
+      (ok (string= (ssh-keys:fingerprint :md5 (ssh-keys:cert-signature-key key))
+		   "73:08:1c:1b:e5:63:0f:46:a7:87:c9:34:10:e9:bc:ee")
+	  "CA key MD5 fingerprint")
+      (ok (string= (ssh-keys:fingerprint :sha1 (ssh-keys:cert-signature-key key))
+		   "yLj/8sjCpPxWVngCdxd9jnsSfjg")
+	  "CA key SHA-1 fingerprint")
+      (ok (string= (ssh-keys:fingerprint :sha256 (ssh-keys:cert-signature-key key))
+		   "TqL9a97yRr48oop+puCjf4sxwiwevsBQ7N+jVScnBhY")
+	  "CA key SHA-256 fingerprint")
+
+      ;; Serial
+      (ok (= 0 (ssh-keys:cert-serial key))
+	  "Serial number")
+
+      ;; Key identity
+      (ok (string= (ssh-keys:cert-key-id key) "john.doe")
+	  "Key identity")
+
+      ;; Valid principals
+      (ok (equal (ssh-keys:cert-valid-principals key) nil)
+	  "Valid principals")
+
+      ;; Valid After
+      (ok (equal (ssh-keys:cert-valid-after key) 0)
+	  "Valid After")
+
+      ;; Valid Before
+      (ok (equal (ssh-keys:cert-valid-before key) ssh-keys:+ssh-cert-max-valid-to+)
+	  "Valid Before")
+
+      ;; Critical Options
+      (ok (equal (ssh-keys:cert-critical-options key) nil)
+	  "Critical options")
+
+      ;; Extensions
+      (ok (equal (ssh-keys:cert-extensions key)
+		 '("permit-X11-forwarding"
+		   "permit-agent-forwarding"
+		   "permit-port-forwarding"
+		   "permit-pty"
+		   "permit-user-rc"))
 	  "Extensions")
 
       ;; Reserved
