@@ -1237,3 +1237,87 @@
       (ok (equal '(nil 4)
                  (multiple-value-list (rfc4251:decode :ssh-cert-extensions s)))
           "Decoded data matches"))))
+
+(deftest ssh-rsa-cert-v01
+  (testing "decode ssh-rsa-cert-v01"
+    (let* ((cert-file-path (get-test-key-path #P"id_rsa_3072-cert.pub"))
+	   (key (ssh-keys:parse-public-key-file cert-file-path))
+	   (string-out-stream (make-string-output-stream)))
+      ;; Client key
+      (ok (string= (ssh-keys:fingerprint :md5 key)
+		   "04:02:4b:b2:43:39:a4:8e:89:47:49:6f:30:78:94:1e")
+	  "Client key MD5 fingerprint")
+      (ok (string= (ssh-keys:fingerprint :sha1 key)
+		   "RnLPLG93GrABjOqc6xOvVFpQXsc")
+	  "Client key SHA-1 fingerprint")
+      (ok (string= (ssh-keys:fingerprint :sha256 key)
+		   "VmYpd+5gvA5Cj57ZZcI8lnFMNNic6jpnnBd0WoNG1F8")
+	  "Client key SHA-256 fingerprint")
+
+      ;; Key kind
+      (ok (equalp (ssh-keys:key-kind key)
+		  '(:name "ssh-rsa-cert-v01@openssh.com"
+		    :plain-name "ssh-rsa"
+		    :short-name "RSA-CERT"
+		    :id :ssh-rsa-cert-v01
+		    :is-cert t))
+	  "Key kind")
+
+      ;; Key comment
+      (ok (string= (ssh-keys:key-comment key) "john.doe@localhost")
+	  "Key comment")
+
+      ;; CA key
+      (ok (string= (ssh-keys:fingerprint :md5 (ssh-keys:cert-signature-key key))
+		   "73:08:1c:1b:e5:63:0f:46:a7:87:c9:34:10:e9:bc:ee")
+	  "CA key MD5 fingerprint")
+      (ok (string= (ssh-keys:fingerprint :sha1 (ssh-keys:cert-signature-key key))
+		   "yLj/8sjCpPxWVngCdxd9jnsSfjg")
+	  "CA key SHA-1 fingerprint")
+      (ok (string= (ssh-keys:fingerprint :sha256 (ssh-keys:cert-signature-key key))
+		   "TqL9a97yRr48oop+puCjf4sxwiwevsBQ7N+jVScnBhY")
+	  "CA key SHA-256 fingerprint")
+
+      ;; Serial
+      (ok (= 0 (ssh-keys:cert-serial key))
+	  "Serial number")
+
+      ;; Key identity
+      (ok (string= (ssh-keys:cert-key-id key) "john.doe")
+	  "Key identity")
+
+      ;; Valid principals
+      (ok (equal (ssh-keys:cert-valid-principals key) nil)
+	  "Valid principals")
+
+      ;; Valid After
+      (ok (equal (ssh-keys:cert-valid-after key) 0)
+	  "Valid After")
+
+      ;; Valid Before
+      (ok (equal (ssh-keys:cert-valid-before key) ssh-keys:+ssh-cert-max-valid-to+)
+	  "Valid Before")
+
+      ;; Critical Options
+      (ok (equal (ssh-keys:cert-critical-options key) nil)
+	  "Critical options")
+
+      ;; Extensions
+      (ok (equal (ssh-keys:cert-extensions key)
+		 '("permit-X11-forwarding" "permit-agent-forwarding" "permit-port-forwarding" "permit-pty" "permit-user-rc"))
+	  "Extensions")
+
+      ;; Reserved
+      (ok (equalp (ssh-keys:cert-reserved key) #())
+	  "Reserved")
+
+      ;; Signature
+      (ok (equal (ssh-keys:signature-type (ssh-keys:cert-signature key))
+		 '(:name "rsa-sha2-512" :digest :sha512))
+	  "Signature type")
+
+      ;; Verify encoding back into text representation
+      (ssh-keys:write-key key string-out-stream)
+      (ok (string= (alexandria:read-file-into-string cert-file-path)
+		   (get-output-stream-string string-out-stream))
+	  "Write cert file into text representation"))))
