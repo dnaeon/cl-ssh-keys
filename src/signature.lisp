@@ -70,3 +70,24 @@
     :initform (error "Must specify signature blob")
     :documentation "Computed signature blob"))
   (:documentation "Certificate signature"))
+
+
+(defmethod rfc4251:decode ((type (eql :cert-signature)) stream &key)
+  "Decode certificate key signature from the given binary stream"
+  (let* ((type-data (multiple-value-list (rfc4251:decode :string stream)))
+	 (blob-data (multiple-value-list (rfc4251:decode :buffer stream)))
+	 (type (first type-data))
+	 (blob (first blob-data))
+	 (total (+ (second type-data) (second blob-data)))
+	 (signature-type (get-signature-type-or-lose type))
+	 (signature (make-instance 'signature
+				   :type signature-type
+				   :blob blob)))
+    (values signature total)))
+
+(defmethod rfc4251:encode ((type (eql :cert-signature)) (value signature) stream &key)
+  "Encode certificate signature into the given stream"
+  (with-accessors ((type signature-type) (blob signature-blob)) value
+    (let ((type-name (getf type :name)))
+      (+ (rfc4251:encode :string type-name stream)
+	 (rfc4251:encode :buffer blob stream)))))
