@@ -6,7 +6,7 @@
   :name "cl-ssh-keys"
   :long-name "cl-ssh-keys"
   :description "Common Lisp system for generating and parsing of OpenSSH keys"
-  :version "0.1.0"
+  :version "0.5.0"
   :author "Marin Atanasov Nikolov <dnaeon@gmail.com>"
   :maintainer "Marin Atanasov Nikolov <dnaeon@gmail.com>"
   :license "BSD 2-Clause"

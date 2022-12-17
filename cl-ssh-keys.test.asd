@@ -6,7 +6,7 @@
   :name "cl-ssh-keys.test"
   :long-name "cl-ssh-keys.test"
   :description "Test suite for cl-ssh-keys system"
-  :version "0.1.0"
+  :version "0.5.0"
   :author "Marin Atanasov Nikolov <dnaeon@gmail.com>"
   :maintainer "Marin Atanasov Nikolov <dnaeon@gmail.com>"
   :license "BSD 2-Clause"
