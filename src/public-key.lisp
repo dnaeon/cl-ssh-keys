@@ -119,7 +119,7 @@ type name, when being embedded within a certificate."
          (size (rfc4251:encode :public-key key stream))
          (bytes (rfc4251:get-binary-stream-bytes stream))
          (digest (ironclad:digest-sequence :sha1 bytes))
-         (encoded (binascii:encode-base64 digest))
+         (encoded (cl-base64:usb8-array-to-base64-string digest))
          (trim-position (position #\= encoded :test #'char=))) ;; Trim padding characters
     (declare (ignore size))
     (subseq encoded 0 trim-position)))
@@ -130,7 +130,7 @@ type name, when being embedded within a certificate."
          (size (rfc4251:encode :public-key key stream))
          (bytes (rfc4251:get-binary-stream-bytes stream))
          (digest (ironclad:digest-sequence :sha256 bytes))
-         (encoded (binascii:encode-base64 digest))
+         (encoded (cl-base64:usb8-array-to-base64-string digest))
          (trim-position (position #\= encoded :test #'char=))) ;; Trim padding characters
     (declare (ignore size))
     (subseq encoded 0 trim-position)))
@@ -140,7 +140,7 @@ type name, when being embedded within a certificate."
   (let* ((s (rfc4251:make-binary-output-stream))
          (size (rfc4251:encode :public-key key s))
          (data (rfc4251:get-binary-stream-bytes s))
-         (encoded (binascii:encode-base64 data))
+         (encoded (cl-base64:usb8-array-to-base64-string data))
          (key-type-name (getf (key-kind key) :name))
          (comment (key-comment key)))
     (declare (ignore size))
@@ -170,7 +170,7 @@ BODY with VAR bound to the decoded public key"
     ;; OpenSSH public keys are encoded in a way, so that the
     ;; key kind preceeds the actual public key components.
     ;; See RFC 4253 for more details.
-    (let* ((stream (rfc4251:make-binary-input-stream (binascii:decode-base64 data)))
+    (let* ((stream (rfc4251:make-binary-input-stream (cl-base64:base64-string-to-usb8-array data)))
            (key-type-name (getf key-type :name))
            (encoded-key-type-name (rfc4251:decode :string stream)))
       (unless (string= key-type-name encoded-key-type-name)

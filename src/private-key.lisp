@@ -372,7 +372,7 @@ If NIL is provided then encryption will be removed for the private key."
   (let* ((s (rfc4251:make-binary-output-stream))
          (size (rfc4251:encode :private-key key s))
          (data (rfc4251:get-binary-stream-bytes s))
-         (encoded (binascii:encode-base64 data)))
+         (encoded (cl-base64:usb8-array-to-base64-string data)))
     (declare (ignore size))
     (format stream "~a~&" +private-key-mark-begin+)
     (loop for char across encoded
@@ -435,7 +435,7 @@ BODY with VAR bound to the decoded private key"
   "Parses an OpenSSH private key from the given plain-text string"
   (let* ((s (make-string-input-stream text))
          (extracted (extract-private-key s))
-         (decoded (binascii:decode-base64 extracted))
+         (decoded (cl-base64:base64-string-to-usb8-array extracted))
          (stream (rfc4251:make-binary-input-stream decoded)))
     (multiple-value-bind (key size) (rfc4251:decode :private-key stream :passphrase passphrase)
       (declare (ignore size))

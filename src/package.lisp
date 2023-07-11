@@ -49,6 +49,7 @@
   (:import-from :cl-rfc4251)
   (:import-from :uiop)
   (:import-from :alexandria)
+  (:import-from :cl-base64)
   (:export
    ;; base
    :base-key
