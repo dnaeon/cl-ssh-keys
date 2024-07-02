@@ -27,7 +27,7 @@
                              (:file "rfc8017" :depends-on ("package"))
                              (:file "generics" :depends-on ("package"))
                              (:file "public-key" :depends-on ("package"))
-                             (:file "private-key" :depends-on ("package"))
+                             (:file "private-key" :depends-on ("package" "ciphers"))
                              (:file "conditions" :depends-on ("package"))
                              (:file "key-types" :depends-on ("package"))
                              (:file "signature" :depends-on ("package"))
